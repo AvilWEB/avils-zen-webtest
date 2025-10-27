@@ -12,12 +12,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Upload, X, Check } from "lucide-react";
+import { Upload, X, Check, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface RequestEstimateModalProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface PhotoFile {
+  file: File;
+  preview: string;
+  type: string;
+  data: string;
 }
 
 const RequestEstimateModal = ({
@@ -40,7 +48,7 @@ const RequestEstimateModal = ({
     heightUnit: "cm",
   });
 
-  const [photos, setPhotos] = useState<File[]>([]);
+  const [photos, setPhotos] = useState<PhotoFile[]>([]);
 
   const progress = (step / 3) * 100;
 
@@ -60,10 +68,27 @@ const RequestEstimateModal = ({
       });
     }
 
-    setPhotos((prev) => [...prev, ...validFiles]);
+    // Convert files to base64 for sending to backend
+    validFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const preview = URL.createObjectURL(file);
+        setPhotos((prev) => [
+          ...prev,
+          {
+            file,
+            preview,
+            type: file.type,
+            data: reader.result as string,
+          },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const removePhoto = (index: number) => {
+    URL.revokeObjectURL(photos[index].preview);
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -121,17 +146,67 @@ const RequestEstimateModal = ({
     setIsSubmitting(true);
 
     try {
-      // TODO: Integrate with Stripe and backend
-      // Simulate payment processing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log("Processing submission...");
 
+      // Process submission first
+      const { data: submissionData, error: submissionError } = await supabase.functions.invoke(
+        "process-submission",
+        {
+          body: {
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            zip: formData.zip,
+            description: formData.description,
+            height: formData.height,
+            heightUnit: formData.heightUnit,
+            photos: photos.map((p) => ({ type: p.type, data: p.data })),
+          },
+        }
+      );
+
+      if (submissionError) throw submissionError;
+
+      console.log("Submission processed:", submissionData);
+
+      // Create payment session
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
+        "create-payment",
+        {
+          body: {
+            email: formData.email,
+            submissionId: submissionData.submissionId,
+          },
+        }
+      );
+
+      if (paymentError) throw paymentError;
+
+      console.log("Payment session created");
+
+      // Redirect to Stripe checkout
+      if (paymentData.url) {
+        window.location.href = paymentData.url;
+      }
+    } catch (error: any) {
+      console.error("Error submitting:", error);
       toast({
-        title: "Success!",
+        title: "Error",
         description:
-          "Your request has been submitted. Avil will contact you within 48 hours.",
+          error.message || "Something went wrong. Please try again or contact us directly.",
+        variant: "destructive",
       });
+      setIsSubmitting(false);
+    }
+  };
 
-      // Reset and close
+  const handleClose = () => {
+    if (!isSubmitting) {
+      // Clean up previews
+      photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
+      
+      // Reset form
       setFormData({
         email: "",
         phone: "",
@@ -145,20 +220,11 @@ const RequestEstimateModal = ({
       setPhotos([]);
       setStep(1);
       onClose();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          "Something went wrong. Please try again or contact us directly.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="space-y-6">
           {/* Header */}
@@ -295,11 +361,12 @@ const RequestEstimateModal = ({
                     {photos.map((photo, index) => (
                       <div key={index} className="relative group">
                         <img
-                          src={URL.createObjectURL(photo)}
+                          src={photo.preview}
                           alt={`Upload ${index + 1}`}
                           className="w-full h-24 object-cover rounded-lg"
                         />
                         <button
+                          type="button"
                           onClick={() => removePhoto(index)}
                           className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
@@ -382,7 +449,7 @@ const RequestEstimateModal = ({
                   )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Address:</span>
-                    <span className="font-medium">
+                    <span className="font-medium text-right">
                       {formData.address}, {formData.city} {formData.zip}
                     </span>
                   </div>
@@ -403,10 +470,12 @@ const RequestEstimateModal = ({
                 </p>
               </div>
 
-              {/* Placeholder for Stripe integration */}
-              <div className="border-2 border-dashed border-border rounded-xl p-8 text-center">
-                <p className="text-muted-foreground">
-                  Stripe payment form will be integrated here
+              <div className="bg-muted/50 rounded-xl p-6 text-sm text-muted-foreground">
+                <p>
+                  By clicking "Submit & Pay", you'll be redirected to Stripe's
+                  secure checkout page to complete your payment. After successful
+                  payment, you'll receive a confirmation email and Avil will
+                  contact you within 48 business hours.
                 </p>
               </div>
             </div>
@@ -415,12 +484,12 @@ const RequestEstimateModal = ({
           {/* Actions */}
           <div className="flex justify-between pt-4">
             {step > 1 && (
-              <Button variant="outline" onClick={handleBack}>
+              <Button variant="outline" onClick={handleBack} disabled={isSubmitting}>
                 Back
               </Button>
             )}
             <div className="ml-auto space-x-2">
-              <Button variant="ghost" onClick={onClose}>
+              <Button variant="ghost" onClick={handleClose} disabled={isSubmitting}>
                 Cancel
               </Button>
               {step < 3 ? (
@@ -432,7 +501,10 @@ const RequestEstimateModal = ({
                   className="bg-primary hover:bg-primary/90"
                 >
                   {isSubmitting ? (
-                    "Processing..."
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
                   ) : (
                     <>
                       <Check className="w-4 h-4 mr-2" />
