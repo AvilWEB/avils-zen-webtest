@@ -14,7 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Berova', 'Georgia', 'serif'],
+        logo: ['Berova', 'Georgia', 'serif'],
+        heading: ['Cotta', 'Georgia', 'serif'],
         body: ['Helvetica', 'Arial', 'sans-serif'],
       },
       colors: {
