@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Playfair Display', 'Georgia', 'serif'],
-        body: ['Inter', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+        heading: ['Berova', 'Georgia', 'serif'],
+        body: ['Helvetica', 'Arial', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
