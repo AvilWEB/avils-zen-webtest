@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Mail, Phone, MapPin } from "lucide-react";
 import PrivacyPolicyModal from "./PrivacyPolicyModal";
-import logo from "@/assets/avils-logo.png";
+import logo from "@/assets/avils-logo.gif";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
