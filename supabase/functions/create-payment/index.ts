@@ -1,10 +1,17 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
+import Stripe from "https://esm.sh/stripe@14.21.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Validation schema
+const paymentSchema = z.object({
+  email: z.string().email('Invalid email address').max(255),
+  submissionId: z.string().trim().min(1, 'Submission ID required').max(100)
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -14,11 +21,25 @@ serve(async (req) => {
   try {
     console.log("Creating payment session for evaluation");
 
-    const { email, submissionId } = await req.json();
-
-    if (!email || !submissionId) {
-      throw new Error("Email and submissionId are required");
+    const requestBody = await req.json();
+    
+    // Validate input
+    const validationResult = paymentSchema.safeParse(requestBody);
+    if (!validationResult.success) {
+      console.error("Validation failed:", validationResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid input data",
+          details: validationResult.error.errors.map(e => e.message)
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
     }
+
+    const { email, submissionId } = validationResult.data;
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -68,7 +89,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error creating payment session:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error occurred" }),
+      JSON.stringify({ error: "Failed to create payment session. Please try again." }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

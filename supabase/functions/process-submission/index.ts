@@ -1,9 +1,31 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+// Validation schema
+const submissionSchema = z.object({
+  email: z.string().email('Invalid email address').max(255),
+  phone: z.string().max(20).optional(),
+  address: z.string().trim().min(5, 'Address must be at least 5 characters').max(200),
+  city: z.string().trim().min(2, 'City must be at least 2 characters').max(100),
+  zip: z.string().trim().min(3, 'ZIP code required').max(10),
+  description: z.string().trim().min(10, 'Description must be at least 10 characters').max(500),
+  height: z.string().max(10).optional(),
+  heightUnit: z.enum(['cm', 'inches', 'feet']).optional(),
+  photos: z.array(z.object({
+    type: z.string().regex(/^image\/(jpeg|jpg|png|webp)$/, 'Invalid image type'),
+    data: z.string()
+  })).min(1, 'At least one photo required').max(10, 'Maximum 10 photos allowed')
+});
+
+// Sanitize text to prevent XSS
+const sanitizeText = (text: string): string => {
+  return text.replace(/<[^>]*>/g, '').trim();
 };
 
 serve(async (req) => {
@@ -13,6 +35,24 @@ serve(async (req) => {
 
   try {
     console.log("Processing submission");
+
+    const requestBody = await req.json();
+    
+    // Validate input
+    const validationResult = submissionSchema.safeParse(requestBody);
+    if (!validationResult.success) {
+      console.error("Validation failed:", validationResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid input data",
+          details: validationResult.error.errors.map(e => e.message)
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
+    }
 
     const {
       email,
@@ -24,7 +64,12 @@ serve(async (req) => {
       height,
       heightUnit,
       photos,
-    } = await req.json();
+    } = validationResult.data;
+
+    // Sanitize text inputs
+    const sanitizedDescription = sanitizeText(description);
+    const sanitizedAddress = sanitizeText(address);
+    const sanitizedCity = sanitizeText(city);
 
     // Create Supabase client
     const supabaseClient = createClient(
@@ -73,10 +118,10 @@ serve(async (req) => {
           submission_id: submissionId,
           email,
           phone,
-          address,
-          city,
+          address: sanitizedAddress,
+          city: sanitizedCity,
           zip,
-          description,
+          description: sanitizedDescription,
           height,
           height_unit: heightUnit,
           photos_folder_url: photoUrls.join(","),
@@ -110,7 +155,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error processing submission:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error occurred" }),
+      JSON.stringify({ error: "Failed to process submission. Please try again." }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
