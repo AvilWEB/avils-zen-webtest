@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Mail, Phone, MapPin } from "lucide-react";
 import PrivacyPolicyModal from "./PrivacyPolicyModal";
+import logo from "@/assets/avils-logo.png";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -12,7 +13,11 @@ const Footer = () => {
         <div className="grid md:grid-cols-3 gap-12 mb-12">
           {/* Brand */}
           <div>
-            <h3 className="text-2xl font-bold mb-4">Avil's Bathrooms</h3>
+            <img 
+              src={logo} 
+              alt="Avil's Bathrooms Logo" 
+              className="h-16 w-auto mb-4"
+            />
             <p className="text-background/80 leading-relaxed">
               Crafted for calm. Premium bathroom renovations in Bridgeport, CT
               and surrounding areas.
