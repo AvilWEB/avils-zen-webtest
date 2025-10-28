@@ -20,7 +20,7 @@ const EvaluationDetails = ({ onOpenModal }: EvaluationDetailsProps) => {
         <div className="bg-card rounded-3xl p-8 md:p-12 shadow-elegant">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
-              What's included in the $20-$50 evaluation
+              What's included in the $50 evaluation
             </h2>
             <p className="text-xl text-muted-foreground font-light">
               A comprehensive assessment to kickstart your bathroom
@@ -45,7 +45,7 @@ const EvaluationDetails = ({ onOpenModal }: EvaluationDetailsProps) => {
               onClick={onOpenModal}
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg rounded-xl shadow-elegant transition-all hover:shadow-xl hover:scale-105"
             >
-              Request Avil's Estimate — $20-$50
+              Request Avil's Estimate — $50
             </Button>
             <p className="mt-4 text-sm text-muted-foreground">
               Secure payment • Avil responds within 48 hours
