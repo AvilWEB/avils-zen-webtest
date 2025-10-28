@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Mail, Phone, MapPin } from "lucide-react";
+import PrivacyPolicyModal from "./PrivacyPolicyModal";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
   return (
     <footer className="bg-foreground text-background py-16 px-4">
@@ -20,18 +23,29 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Contact</h4>
             <div className="space-y-3">
-              <div className="flex items-center gap-3 text-background/80">
+              <a 
+                href="tel:+12035566761"
+                className="flex items-center gap-3 text-background/80 hover:text-background transition-colors"
+              >
                 <Phone className="w-5 h-5" />
-                <span>(203) 555-0100</span>
-              </div>
-              <div className="flex items-center gap-3 text-background/80">
+                <span>+1 (203) 556-6761</span>
+              </a>
+              <a 
+                href="mailto:info@avilsbathrooms.com"
+                className="flex items-center gap-3 text-background/80 hover:text-background transition-colors"
+              >
                 <Mail className="w-5 h-5" />
                 <span>info@avilsbathrooms.com</span>
-              </div>
-              <div className="flex items-center gap-3 text-background/80">
+              </a>
+              <a
+                href="https://maps.app.goo.gl/zbzYZkNnsah6s8vd9"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-background/80 hover:text-background transition-colors"
+              >
                 <MapPin className="w-5 h-5" />
-                <span>Bridgeport, CT</span>
-              </div>
+                <span>259 Willow St, Bridgeport, CT 06610</span>
+              </a>
             </div>
           </div>
 
@@ -45,12 +59,12 @@ const Footer = () => {
               >
                 Portfolio
               </a>
-              <a
-                href="#"
-                className="block text-background/80 hover:text-background transition-colors"
+              <button
+                onClick={() => setIsPrivacyModalOpen(true)}
+                className="block text-background/80 hover:text-background transition-colors text-left"
               >
                 Privacy Policy
-              </a>
+              </button>
               <a
                 href="#"
                 className="block text-background/80 hover:text-background transition-colors"
@@ -77,6 +91,10 @@ const Footer = () => {
           </p>
         </div>
       </div>
+      <PrivacyPolicyModal 
+        isOpen={isPrivacyModalOpen} 
+        onClose={() => setIsPrivacyModalOpen(false)} 
+      />
     </footer>
   );
 };
