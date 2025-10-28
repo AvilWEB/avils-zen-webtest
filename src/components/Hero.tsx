@@ -46,7 +46,7 @@ const Hero = ({ onOpenModal }: HeroProps) => {
               onClick={onOpenModal}
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg rounded-xl shadow-elegant transition-all hover:shadow-xl hover:scale-105"
             >
-              Request Avil's Estimate — $20
+              Request Avil's Estimate — $50
             </Button>
             <button
               onClick={scrollToGallery}

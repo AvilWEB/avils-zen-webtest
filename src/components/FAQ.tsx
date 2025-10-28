@@ -8,7 +8,7 @@ import {
 const FAQ = () => {
   const faqs = [
     {
-      question: "What does the $20 evaluation include?",
+      question: "What does the $50 evaluation include?",
       answer:
         "The evaluation includes a thorough review of your photos, a rough project scope, prioritized improvement recommendations, and a timeline estimate. Avil personally reviews each submission.",
     },
@@ -33,9 +33,9 @@ const FAQ = () => {
         "Project timelines vary based on scope and complexity. A typical bathroom renovation takes 2-4 weeks. Avil will provide a detailed timeline during your evaluation.",
     },
     {
-      question: "Is the $20 evaluation fee refundable?",
+      question: "Is the $50 evaluation fee refundable?",
       answer:
-        "The evaluation fee is non-refundable but represents a valuable first step. If you proceed with the full project, the $20 is credited toward your final invoice.",
+        "The evaluation fee is non-refundable but represents a valuable first step. If you proceed with the full project, the $50 is credited toward your final invoice.",
     },
   ];
 
