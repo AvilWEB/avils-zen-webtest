@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Mail, Phone, MapPin } from "lucide-react";
 import PrivacyPolicyModal from "./PrivacyPolicyModal";
-import logo from "@/assets/avils-logo.gif";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -14,7 +13,7 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <img 
-              src={logo} 
+              src="/avils-logo.gif" 
               alt="Avil's Bathrooms Logo" 
               className="h-16 w-auto mb-4"
             />
