@@ -24,7 +24,7 @@ const EvaluationDetails = ({ onOpenModal }: EvaluationDetailsProps) => {
               <img 
                 src={avilPortrait} 
                 alt="Avil - Master Bathroom Renovator" 
-                className="w-32 h-32 rounded-full object-cover shadow-lg ring-4 ring-primary/20"
+                className="w-64 h-80 rounded-2xl object-cover shadow-elegant ring-4 ring-primary/20"
               />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
