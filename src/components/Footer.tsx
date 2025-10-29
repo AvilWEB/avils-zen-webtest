@@ -15,7 +15,7 @@ const Footer = () => {
             <img 
               src="/avils-logo.gif" 
               alt="Avil's Bathrooms Logo" 
-              className="h-16 w-auto mb-4"
+              className="w-[150px] h-[150px] mb-4"
             />
             <p className="text-background/80 leading-relaxed">
               Crafted for calm. Premium bathroom renovations in Bridgeport, CT
