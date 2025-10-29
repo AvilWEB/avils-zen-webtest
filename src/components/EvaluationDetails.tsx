@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import avilPortrait from "@/assets/avil-portrait.jpg";
 
 interface EvaluationDetailsProps {
   onOpenModal: () => void;
@@ -19,6 +20,13 @@ const EvaluationDetails = ({ onOpenModal }: EvaluationDetailsProps) => {
       <div className="max-w-4xl mx-auto">
         <div className="bg-card rounded-3xl p-8 md:p-12 shadow-elegant">
           <div className="text-center mb-12">
+            <div className="flex justify-center mb-8">
+              <img 
+                src={avilPortrait} 
+                alt="Avil - Master Bathroom Renovator" 
+                className="w-32 h-32 rounded-full object-cover shadow-lg ring-4 ring-primary/20"
+              />
+            </div>
             <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
               What's included in the $50 evaluation
             </h2>
