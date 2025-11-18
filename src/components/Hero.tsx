@@ -23,9 +23,7 @@ const Hero = ({
 
       {/* Content Overlay */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
-        <div className="max-w-4xl rounded-2xl bg-background/90 backdrop-blur-sm p-8 md:p-12 shadow-elegant">
-          {/* Content can be added here if needed */}
-        </div>
+        
       </div>
 
       {/* Scroll Indicator */}
