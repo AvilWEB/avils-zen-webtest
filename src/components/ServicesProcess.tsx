@@ -1,36 +1,26 @@
 import { MessageSquare, Palette, Hammer } from "lucide-react";
-
 const ServicesProcess = () => {
-  const steps = [
-    {
-      icon: MessageSquare,
-      title: "Consult",
-      description:
-        "We begin with understanding your vision, space, and lifestyle needs",
-      number: "01",
-    },
-    {
-      icon: Palette,
-      title: "Design",
-      description:
-        "Custom design solutions that blend aesthetics with functionality",
-      number: "02",
-    },
-    {
-      icon: Hammer,
-      title: "Build",
-      description:
-        "Meticulous execution with attention to every detail and finish",
-      number: "03",
-    },
-  ];
-
-  return (
-    <section className="py-20 md:py-32 px-4 bg-background">
+  const steps = [{
+    icon: MessageSquare,
+    title: "Consult",
+    description: "We begin with understanding your vision, space, and lifestyle needs",
+    number: "01"
+  }, {
+    icon: Palette,
+    title: "Design",
+    description: "Custom design solutions that blend aesthetics with functionality",
+    number: "02"
+  }, {
+    icon: Hammer,
+    title: "Build",
+    description: "Meticulous execution with attention to every detail and finish",
+    number: "03"
+  }];
+  return <section className="py-20 md:py-32 px-4 bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
-            Services & Process
+            Services / Process
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-light">
             A seamless journey from concept to completion, guided by experience
@@ -39,12 +29,9 @@ const ServicesProcess = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-12 md:gap-8">
-          {steps.map((step, index) => (
-            <div key={index} className="relative">
+          {steps.map((step, index) => <div key={index} className="relative">
               {/* Connector Line (desktop only) */}
-              {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-border -z-10" />
-              )}
+              {index < steps.length - 1 && <div className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-border -z-10" />}
 
               <div className="text-center">
                 {/* Number Badge */}
@@ -65,12 +52,9 @@ const ServicesProcess = () => {
                   {step.description}
                 </p>
               </div>
-            </div>
-          ))}
+            </div>)}
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default ServicesProcess;
