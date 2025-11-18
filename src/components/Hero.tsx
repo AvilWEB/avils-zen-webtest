@@ -1,11 +1,22 @@
 import { Button } from "@/components/ui/button";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Volume2, VolumeX } from "lucide-react";
+import { useState, useRef } from "react";
 interface HeroProps {
   onOpenModal: () => void;
 }
 const Hero = ({
   onOpenModal
 }: HeroProps) => {
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
   const scrollToGallery = () => {
     const gallery = document.getElementById("gallery");
     gallery?.scrollIntoView({
@@ -15,11 +26,24 @@ const Hero = ({
   return <section className="relative h-screen w-full overflow-hidden">
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
-        <video autoPlay muted loop playsInline className="h-full w-full object-cover">
-          <source src="https://cdn.pixabay.com/video/2023/05/17/162826-826774896_large.mp4" type="video/mp4" />
+        <video ref={videoRef} autoPlay muted loop playsInline className="h-full w-full object-cover">
+          <source src="/baner-video.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#E5E2D5] via-background/60 to-background" />
       </div>
+
+      {/* Sound Toggle Button */}
+      <button
+        onClick={toggleMute}
+        className="absolute bottom-8 right-8 z-10 p-3 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors shadow-lg"
+        aria-label={isMuted ? "Ieslēgt skaņu" : "Izslēgt skaņu"}
+      >
+        {isMuted ? (
+          <VolumeX className="w-5 h-5 text-foreground" />
+        ) : (
+          <Volume2 className="w-5 h-5 text-foreground" />
+        )}
+      </button>
 
       {/* Content Overlay */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
