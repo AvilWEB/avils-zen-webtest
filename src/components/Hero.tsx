@@ -24,17 +24,7 @@ const Hero = ({
       {/* Content Overlay */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
         <div className="max-w-4xl rounded-2xl bg-background/90 backdrop-blur-sm p-8 md:p-12 shadow-elegant">
-          
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" onClick={onOpenModal} className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg rounded-xl shadow-elegant transition-all hover:shadow-xl hover:scale-105">
-              Request Avil's Estimate — $50
-            </Button>
-            <button onClick={scrollToGallery} className="text-foreground hover:text-primary transition-colors flex items-center gap-2 group">
-              
-              
-            </button>
-          </div>
+          {/* Content can be added here if needed */}
         </div>
       </div>
 
