@@ -29,19 +29,18 @@ const Hero = ({
         <video ref={videoRef} autoPlay muted loop playsInline className="h-full w-full object-cover">
           <source src="/baner-video.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#E5E2D5] via-background/60 to-background" />
       </div>
 
       {/* Sound Toggle Button */}
       <button
         onClick={toggleMute}
-        className="absolute bottom-8 right-8 z-10 p-3 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors shadow-lg"
+        className="absolute bottom-8 right-8 z-20 p-3 rounded-full bg-foreground/90 backdrop-blur-sm hover:bg-foreground transition-all shadow-elegant"
         aria-label={isMuted ? "Ieslēgt skaņu" : "Izslēgt skaņu"}
       >
         {isMuted ? (
-          <VolumeX className="w-5 h-5 text-foreground" />
+          <VolumeX className="w-6 h-6 text-background" />
         ) : (
-          <Volume2 className="w-5 h-5 text-foreground" />
+          <Volume2 className="w-6 h-6 text-background" />
         )}
       </button>
 
