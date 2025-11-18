@@ -23,10 +23,10 @@ const Hero = ({
       behavior: "smooth"
     });
   };
-  return <section className="relative h-screen w-full overflow-hidden">
+  return <section className="relative h-screen w-full overflow-hidden bg-[#E5E2D5]">
       {/* Video Background */}
-      <div className="absolute inset-0 z-0">
-        <video ref={videoRef} autoPlay muted loop playsInline className="h-full w-full object-cover">
+      <div className="absolute inset-0 z-0 flex items-center justify-center">
+        <video ref={videoRef} autoPlay muted loop playsInline className="w-full h-full object-contain">
           <source src="/baner-video.mp4" type="video/mp4" />
         </video>
       </div>
