@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import BeforeAfterSlider from "./BeforeAfterSlider";
+import sandyHookBefore from "@/assets/sandy-hook-before.jpg";
+import sandyHookAfter from "@/assets/sandy-hook-after.jpg";
 
 const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -50,28 +53,74 @@ const Gallery = () => {
           </p>
         </div>
 
+        {/* Before/After Sliders Section */}
+        <div className="mb-16">
+          <h3 className="text-2xl md:text-3xl font-bold mb-8 text-foreground text-center">
+            Interactive Comparisons
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            <BeforeAfterSlider
+              beforeImage={sandyHookBefore}
+              afterImage={sandyHookAfter}
+              beforeAlt="Sandy Hook bathroom before renovation"
+              afterAlt="Sandy Hook bathroom after renovation"
+            />
+            {/* Placeholder for future before/after sliders */}
+            <div className="aspect-video bg-muted/30 rounded-2xl border-2 border-dashed border-muted flex items-center justify-center text-muted-foreground">
+              Coming Soon
+            </div>
+            <div className="aspect-video bg-muted/30 rounded-2xl border-2 border-dashed border-muted flex items-center justify-center text-muted-foreground">
+              Coming Soon
+            </div>
+          </div>
+        </div>
+
+        {/* Video Testimonials Section */}
+        <div className="mb-16">
+          <h3 className="text-2xl md:text-3xl font-bold mb-8 text-foreground text-center">
+            Customer Testimonials
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {/* Placeholder for video testimonials */}
+            <div className="aspect-video bg-muted/30 rounded-2xl border-2 border-dashed border-muted flex items-center justify-center text-muted-foreground">
+              Video Coming Soon
+            </div>
+            <div className="aspect-video bg-muted/30 rounded-2xl border-2 border-dashed border-muted flex items-center justify-center text-muted-foreground">
+              Video Coming Soon
+            </div>
+            <div className="aspect-video bg-muted/30 rounded-2xl border-2 border-dashed border-muted flex items-center justify-center text-muted-foreground">
+              Video Coming Soon
+            </div>
+          </div>
+        </div>
+
         {/* Gallery Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-          {images.map((image, index) => (
-            <div
-              key={index}
-              className="group relative aspect-square overflow-hidden rounded-2xl cursor-pointer shadow-soft hover:shadow-elegant transition-all duration-300"
-              onClick={() => setSelectedImage(image.url)}
-            >
-              <img
-                src={image.url}
-                alt={image.alt}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="absolute bottom-4 left-4 right-4">
-                  <span className="inline-block px-3 py-1 bg-primary text-primary-foreground text-sm rounded-lg font-medium">
-                    {image.category}
-                  </span>
+        <div>
+          <h3 className="text-2xl md:text-3xl font-bold mb-8 text-foreground text-center">
+            Gallery
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+            {images.map((image, index) => (
+              <div
+                key={index}
+                className="group relative aspect-square overflow-hidden rounded-2xl cursor-pointer shadow-soft hover:shadow-elegant transition-all duration-300"
+                onClick={() => setSelectedImage(image.url)}
+              >
+                <img
+                  src={image.url}
+                  alt={image.alt}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <span className="inline-block px-3 py-1 bg-primary text-primary-foreground text-sm rounded-lg font-medium">
+                      {image.category}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Lightbox */}
