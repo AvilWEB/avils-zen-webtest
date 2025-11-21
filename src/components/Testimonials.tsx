@@ -1,12 +1,19 @@
-import { Star, Shield, Award } from "lucide-react";
+import { Star, Shield, Award, Play } from "lucide-react";
+import { useState } from "react";
+import VideoTestimonialModal from "./VideoTestimonialModal";
+import testimonialCover from "@/assets/testimonial-andy-erin-cover.jpg";
 
 const Testimonials = () => {
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
   const testimonials = [
     {
       name: "Andy And Erin Bosco",
       location: "Sandyhook",
       text: "The whole process was perfect. So very communicative, super respectful about our schedule. We have a family, we've got kids. We had a whole thing built outside the bathroom to keep the dust and the construction to a minimum, which is wonderful.",
       rating: 5,
+      hasVideo: true,
+      videoCover: testimonialCover,
+      videoUrl: "/testimonial-andy-erin.mp4",
     },
     {
       name: "Michael R.",
@@ -45,35 +52,64 @@ const Testimonials = () => {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-background rounded-2xl p-8 shadow-soft hover:shadow-elegant transition-all duration-300"
+              className="bg-background rounded-2xl overflow-hidden shadow-soft hover:shadow-elegant transition-all duration-300"
             >
-              {/* Stars */}
-              <div className="flex gap-1 mb-4">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-5 h-5 fill-accent text-accent"
+              {/* Video Thumbnail (if available) */}
+              {testimonial.hasVideo && (
+                <div 
+                  className="relative cursor-pointer group"
+                  onClick={() => setIsVideoOpen(true)}
+                >
+                  <img 
+                    src={testimonial.videoCover} 
+                    alt={`${testimonial.name} testimonial video`}
+                    className="w-full h-48 object-cover"
                   />
-                ))}
-              </div>
+                  <div className="absolute inset-0 bg-foreground/40 group-hover:bg-foreground/50 transition-all flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Play className="w-8 h-8 text-primary-foreground ml-1" fill="currentColor" />
+                    </div>
+                  </div>
+                </div>
+              )}
 
-              {/* Quote */}
-              <p className="text-foreground mb-6 leading-relaxed">
-                "{testimonial.text}"
-              </p>
+              <div className="p-8">
+                {/* Stars */}
+                <div className="flex gap-1 mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className="w-5 h-5 fill-accent text-accent"
+                    />
+                  ))}
+                </div>
 
-              {/* Author */}
-              <div>
-                <p className="font-semibold text-foreground">
-                  {testimonial.name}
+                {/* Quote */}
+                <p className="text-foreground mb-6 leading-relaxed">
+                  "{testimonial.text}"
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {testimonial.location}
-                </p>
+
+                {/* Author */}
+                <div>
+                  <p className="font-semibold text-foreground">
+                    {testimonial.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {testimonial.location}
+                  </p>
+                </div>
               </div>
             </div>
           ))}
         </div>
+
+        {/* Video Modal */}
+        <VideoTestimonialModal
+          isOpen={isVideoOpen}
+          onClose={() => setIsVideoOpen(false)}
+          videoUrl="/testimonial-andy-erin.mp4"
+          customerName="Andy And Erin Bosco"
+        />
 
         {/* Trust Badges */}
         <div className="flex flex-wrap justify-center gap-8 pt-8 border-t border-border">
