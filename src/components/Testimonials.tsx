@@ -5,7 +5,7 @@ const Testimonials = () => {
     {
       name: "Andy And Erin Bosco",
       location: "Fairfield County",
-      text: "Avil transformed our master bathroom into a spa-like retreat. His attention to detail and commitment to quality is unmatched.",
+      text: "The whole process was perfect. So very communicative, super respectful about our schedule. We have a family, we've got kids. We had a whole thing built outside the bathroom to keep the dust and the construction to a minimum, which is wonderful.",
       rating: 5,
     },
     {
