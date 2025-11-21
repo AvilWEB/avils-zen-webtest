@@ -3,7 +3,7 @@ import { Star, Shield, Award } from "lucide-react";
 const Testimonials = () => {
   const testimonials = [
     {
-      name: "Sarah M.",
+      name: "Andy And Erin Bosco",
       location: "Fairfield County",
       text: "Avil transformed our master bathroom into a spa-like retreat. His attention to detail and commitment to quality is unmatched.",
       rating: 5,
