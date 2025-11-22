@@ -64,14 +64,14 @@ serve(async (req) => {
               name: "Avil's Bathroom Evaluation",
               description: "Professional bathroom renovation assessment",
             },
-            unit_amount: 2000, // $20.00
+            unit_amount: 5000, // $50.00
           },
           quantity: 1,
         },
       ],
       mode: "payment",
       success_url: `${req.headers.get("origin")}/payment-success?submission=${submissionId}`,
-      cancel_url: `${req.headers.get("origin")}/`,
+      cancel_url: `${req.headers.get("origin")}/?payment=cancelled`,
       metadata: {
         submission_id: submissionId,
       },
