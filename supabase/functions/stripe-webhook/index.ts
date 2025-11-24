@@ -8,8 +8,9 @@ const corsHeaders = {
 };
 
 const logStep = (step: string, details?: any) => {
+  const timestamp = new Date().toISOString();
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
+  console.log(`[STRIPE-WEBHOOK ${timestamp}] ${step}${detailsStr}`);
 };
 
 // Helper function to create JWT for Google Sheets authentication
@@ -87,27 +88,48 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
 }
 
 serve(async (req) => {
+  logStep("Incoming request", { 
+    method: req.method, 
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries())
+  });
+  
   if (req.method === "OPTIONS") {
+    logStep("CORS preflight request handled");
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    logStep("Webhook request received");
+    logStep("Starting webhook processing");
 
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     
+    logStep("Environment variables check", {
+      hasStripeKey: !!stripeSecretKey,
+      hasWebhookSecret: !!webhookSecret,
+      stripeKeyLength: stripeSecretKey?.length,
+      webhookSecretLength: webhookSecret?.length
+    });
+    
     if (!stripeSecretKey) {
+      logStep("CRITICAL ERROR: STRIPE_SECRET_KEY is not configured");
       throw new Error("STRIPE_SECRET_KEY is not configured");
     }
     
     if (!webhookSecret) {
+      logStep("CRITICAL ERROR: STRIPE_WEBHOOK_SECRET is not configured");
       throw new Error("STRIPE_WEBHOOK_SECRET is not configured");
     }
 
     const signature = req.headers.get("stripe-signature");
+    logStep("Stripe signature check", { 
+      hasSignature: !!signature,
+      signaturePreview: signature?.substring(0, 50) + "..."
+    });
+    
     if (!signature) {
-      logStep("ERROR: No stripe-signature header found");
+      logStep("CRITICAL ERROR: No stripe-signature header found in request");
       return new Response(
         JSON.stringify({ error: "No signature provided" }),
         {
@@ -122,24 +144,39 @@ serve(async (req) => {
     // Read the raw body as text for signature verification
     const body = await req.text();
     
-    logStep("Body received, initializing Stripe");
+    logStep("Request body received", { 
+      bodyLength: body.length,
+      bodyPreview: body.substring(0, 100) + "..."
+    });
 
+    logStep("Initializing Stripe client");
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2025-08-27.basil",
     });
+    logStep("Stripe client initialized successfully");
 
     // Verify webhook signature
     let event: Stripe.Event;
     try {
+      logStep("Verifying webhook signature with Stripe");
       event = await stripe.webhooks.constructEventAsync(
         body,
         signature,
         webhookSecret
       );
-      logStep("Webhook signature verified", { eventType: event.type });
+      logStep("✅ Webhook signature verified successfully", { 
+        eventType: event.type,
+        eventId: event.id,
+        created: event.created
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
-      logStep("ERROR: Webhook signature verification failed", { error: errorMessage });
+      const errorStack = err instanceof Error ? err.stack : undefined;
+      logStep("❌ CRITICAL ERROR: Webhook signature verification failed", { 
+        error: errorMessage,
+        stack: errorStack,
+        signatureLength: signature.length
+      });
       return new Response(
         JSON.stringify({ error: `Webhook signature verification failed: ${errorMessage}` }),
         {
@@ -150,25 +187,37 @@ serve(async (req) => {
     }
 
     // Initialize Supabase client with service role key for database updates
+    logStep("Initializing Supabase client");
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
+    logStep("Supabase client initialized");
 
     // Handle checkout.session.completed event
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       
-      logStep("Processing checkout.session.completed", {
+      logStep("🎯 Processing checkout.session.completed event", {
         sessionId: session.id,
         paymentStatus: session.payment_status,
+        customerEmail: session.customer_email,
+        amountTotal: session.amount_total,
+        currency: session.currency,
+        metadata: session.metadata
       });
 
       // Extract submission ID from metadata
       const submissionId = session.metadata?.submission_id;
       
+      logStep("Checking for submission_id in metadata", {
+        hasMetadata: !!session.metadata,
+        metadata: session.metadata,
+        submissionId
+      });
+      
       if (!submissionId) {
-        logStep("ERROR: No submission_id in session metadata");
+        logStep("❌ CRITICAL ERROR: No submission_id found in session metadata");
         return new Response(
           JSON.stringify({ error: "No submission_id in metadata" }),
           {
@@ -178,16 +227,27 @@ serve(async (req) => {
         );
       }
 
-      logStep("Submission ID found", { submissionId });
+      logStep("✅ Submission ID extracted from metadata", { submissionId });
 
       // Get payment intent ID
       const paymentIntentId = session.payment_intent as string;
       
+      logStep("Payment intent check", {
+        hasPaymentIntent: !!paymentIntentId,
+        paymentIntentId
+      });
+      
       if (!paymentIntentId) {
-        logStep("WARNING: No payment_intent in session");
+        logStep("⚠️ WARNING: No payment_intent found in session");
       }
 
       // Update submission status in database
+      logStep("📝 Updating submission in database", { 
+        submissionId,
+        newStatus: "paid",
+        paymentIntentId 
+      });
+      
       const { data, error } = await supabaseClient
         .from("submissions")
         .update({
@@ -199,9 +259,12 @@ serve(async (req) => {
         .select();
 
       if (error) {
-        logStep("ERROR: Failed to update submission", {
+        logStep("❌ CRITICAL ERROR: Failed to update submission in database", {
           submissionId,
           error: error.message,
+          errorDetails: error,
+          code: error.code,
+          hint: error.hint
         });
         return new Response(
           JSON.stringify({ error: `Database update failed: ${error.message}` }),
@@ -212,10 +275,11 @@ serve(async (req) => {
         );
       }
 
-      logStep("Submission updated successfully", {
+      logStep("✅ Submission updated successfully in database", {
         submissionId,
         paymentIntentId,
         updatedRecords: data?.length,
+        updatedData: data
       });
 
       // Sync to Google Sheets
@@ -223,19 +287,34 @@ serve(async (req) => {
         if (data && data.length > 0) {
           const submission = data[0];
           
-          logStep("Syncing to Google Sheets", { submissionId });
+          logStep("📊 Starting Google Sheets sync", { submissionId });
           
           // Get Google Sheets credentials
           const credentialsJson = Deno.env.get("GOOGLE_SHEETS_CREDENTIALS");
           const sheetId = Deno.env.get("GOOGLE_SHEET_ID");
           
+          logStep("Google Sheets configuration check", {
+            hasCredentials: !!credentialsJson,
+            hasSheetId: !!sheetId,
+            credentialsLength: credentialsJson?.length,
+            sheetId: sheetId
+          });
+          
           if (!credentialsJson || !sheetId) {
-            logStep("WARNING: Google Sheets credentials not configured, skipping sync");
+            logStep("⚠️ WARNING: Google Sheets credentials not configured, skipping sync");
           } else {
+            logStep("Parsing Google Sheets credentials");
             const credentials = JSON.parse(credentialsJson);
+            logStep("✅ Credentials parsed successfully", {
+              clientEmail: credentials.client_email,
+              projectId: credentials.project_id
+            });
             
             // Get OAuth token from service account
+            logStep("Creating JWT for Google authentication");
             const jwt = await createJWT(credentials);
+            logStep("✅ JWT created, requesting OAuth access token");
+            
             const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
               method: "POST",
               headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -245,11 +324,22 @@ serve(async (req) => {
               }),
             });
             
+            logStep("OAuth token response", {
+              status: tokenResponse.status,
+              ok: tokenResponse.ok
+            });
+            
             if (!tokenResponse.ok) {
-              throw new Error(`Failed to get access token: ${await tokenResponse.text()}`);
+              const errorText = await tokenResponse.text();
+              logStep("❌ ERROR: Failed to get OAuth access token", { 
+                status: tokenResponse.status,
+                error: errorText 
+              });
+              throw new Error(`Failed to get access token: ${errorText}`);
             }
             
             const { access_token } = await tokenResponse.json();
+            logStep("✅ OAuth access token obtained successfully");
             
             // Prepare row data matching user's specified format
             const rowData = [
@@ -264,34 +354,69 @@ serve(async (req) => {
               new Date(submission.created_at).toLocaleString() || "",
             ];
             
+            logStep("Row data prepared for Google Sheets", {
+              rowData,
+              rowLength: rowData.length
+            });
+            
             // Append to Google Sheet
-            const sheetsResponse = await fetch(
-              `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:I:append?valueInputOption=RAW`,
-              {
-                method: "POST",
-                headers: {
-                  "Authorization": `Bearer ${access_token}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  values: [rowData],
-                }),
-              }
-            );
+            const sheetsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:I:append?valueInputOption=RAW`;
+            logStep("Appending row to Google Sheets", { 
+              url: sheetsUrl,
+              submissionId 
+            });
+            
+            const sheetsResponse = await fetch(sheetsUrl, {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${access_token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                values: [rowData],
+              }),
+            });
+            
+            logStep("Google Sheets API response", {
+              status: sheetsResponse.status,
+              ok: sheetsResponse.ok
+            });
             
             if (!sheetsResponse.ok) {
-              throw new Error(`Failed to append to Google Sheets: ${await sheetsResponse.text()}`);
+              const errorText = await sheetsResponse.text();
+              logStep("❌ ERROR: Failed to append to Google Sheets", {
+                status: sheetsResponse.status,
+                error: errorText
+              });
+              throw new Error(`Failed to append to Google Sheets: ${errorText}`);
             }
             
-            logStep("Successfully synced to Google Sheets", { submissionId });
+            const sheetsResult = await sheetsResponse.json();
+            logStep("✅ Successfully synced to Google Sheets", { 
+              submissionId,
+              updatedRange: sheetsResult.updates?.updatedRange,
+              updatedRows: sheetsResult.updates?.updatedRows,
+              updatedColumns: sheetsResult.updates?.updatedColumns
+            });
           }
         }
       } catch (sheetsError) {
         // Log error but don't fail the webhook
         const errorMessage = sheetsError instanceof Error ? sheetsError.message : String(sheetsError);
-        logStep("ERROR: Failed to sync to Google Sheets", { error: errorMessage });
+        const errorStack = sheetsError instanceof Error ? sheetsError.stack : undefined;
+        logStep("❌ ERROR: Failed to sync to Google Sheets (non-fatal)", { 
+          error: errorMessage,
+          stack: errorStack,
+          submissionId
+        });
       }
 
+      logStep("✅ Webhook processing completed successfully", {
+        eventType: event.type,
+        submissionId,
+        finalStatus: "paid"
+      });
+      
       return new Response(
         JSON.stringify({ 
           received: true, 
@@ -306,7 +431,10 @@ serve(async (req) => {
     }
 
     // Log other event types for debugging
-    logStep("Received unhandled event type", { eventType: event.type });
+    logStep("ℹ️ Received unhandled event type", { 
+      eventType: event.type,
+      eventId: event.id 
+    });
 
     return new Response(
       JSON.stringify({ received: true, eventType: event.type }),
@@ -317,7 +445,12 @@ serve(async (req) => {
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR: Unexpected error in webhook handler", { error: errorMessage });
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    logStep("💥 FATAL ERROR: Unexpected error in webhook handler", { 
+      error: errorMessage,
+      stack: errorStack,
+      errorType: error instanceof Error ? error.constructor.name : typeof error
+    });
     
     return new Response(
       JSON.stringify({ error: `Webhook handler error: ${errorMessage}` }),
