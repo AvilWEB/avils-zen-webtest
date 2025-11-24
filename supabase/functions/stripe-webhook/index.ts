@@ -12,6 +12,80 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
+// Helper function to create JWT for Google Sheets authentication
+async function createJWT(credentials: any): Promise<string> {
+  const header = {
+    alg: "RS256",
+    typ: "JWT",
+  };
+
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    iss: credentials.client_email,
+    scope: "https://www.googleapis.com/auth/spreadsheets",
+    aud: "https://oauth2.googleapis.com/token",
+    exp: now + 3600,
+    iat: now,
+  };
+
+  const encodedHeader = base64UrlEncode(JSON.stringify(header));
+  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+  const unsignedToken = `${encodedHeader}.${encodedPayload}`;
+
+  // Import private key
+  const privateKey = credentials.private_key;
+  const key = await crypto.subtle.importKey(
+    "pkcs8",
+    pemToArrayBuffer(privateKey),
+    {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-256",
+    },
+    false,
+    ["sign"]
+  );
+
+  // Sign the token
+  const signature = await crypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5",
+    key,
+    new TextEncoder().encode(unsignedToken)
+  );
+
+  const encodedSignature = base64UrlEncode(signature);
+  return `${unsignedToken}.${encodedSignature}`;
+}
+
+function base64UrlEncode(data: string | ArrayBuffer): string {
+  const bytes = typeof data === "string" 
+    ? new TextEncoder().encode(data)
+    : new Uint8Array(data);
+  
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  
+  return btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+function pemToArrayBuffer(pem: string): ArrayBuffer {
+  const pemContents = pem
+    .replace(/-----BEGIN PRIVATE KEY-----/, '')
+    .replace(/-----END PRIVATE KEY-----/, '')
+    .replace(/\s/g, '');
+  
+  const binaryString = atob(pemContents);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -143,6 +217,80 @@ serve(async (req) => {
         paymentIntentId,
         updatedRecords: data?.length,
       });
+
+      // Sync to Google Sheets
+      try {
+        if (data && data.length > 0) {
+          const submission = data[0];
+          
+          logStep("Syncing to Google Sheets", { submissionId });
+          
+          // Get Google Sheets credentials
+          const credentialsJson = Deno.env.get("GOOGLE_SHEETS_CREDENTIALS");
+          const sheetId = Deno.env.get("GOOGLE_SHEET_ID");
+          
+          if (!credentialsJson || !sheetId) {
+            logStep("WARNING: Google Sheets credentials not configured, skipping sync");
+          } else {
+            const credentials = JSON.parse(credentialsJson);
+            
+            // Get OAuth token from service account
+            const jwt = await createJWT(credentials);
+            const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: new URLSearchParams({
+                grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                assertion: jwt,
+              }),
+            });
+            
+            if (!tokenResponse.ok) {
+              throw new Error(`Failed to get access token: ${await tokenResponse.text()}`);
+            }
+            
+            const { access_token } = await tokenResponse.json();
+            
+            // Prepare row data matching user's specified format
+            const rowData = [
+              submission.email || "", // Name (using email as we don't have a separate name field)
+              submission.phone || "",
+              submission.email || "",
+              `${submission.address}, ${submission.city}, ${submission.zip}`,
+              submission.submission_id || "",
+              "$50.00", // Amount
+              session.id || "", // Stripe session ID
+              submission.status || "",
+              new Date(submission.created_at).toLocaleString() || "",
+            ];
+            
+            // Append to Google Sheet
+            const sheetsResponse = await fetch(
+              `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:I:append?valueInputOption=RAW`,
+              {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${access_token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  values: [rowData],
+                }),
+              }
+            );
+            
+            if (!sheetsResponse.ok) {
+              throw new Error(`Failed to append to Google Sheets: ${await sheetsResponse.text()}`);
+            }
+            
+            logStep("Successfully synced to Google Sheets", { submissionId });
+          }
+        }
+      } catch (sheetsError) {
+        // Log error but don't fail the webhook
+        const errorMessage = sheetsError instanceof Error ? sheetsError.message : String(sheetsError);
+        logStep("ERROR: Failed to sync to Google Sheets", { error: errorMessage });
+      }
 
       return new Response(
         JSON.stringify({ 
