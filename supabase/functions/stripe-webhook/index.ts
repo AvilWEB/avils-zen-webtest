@@ -87,6 +87,173 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
   return bytes.buffer;
 }
 
+// Helper function to upload photo to Google Drive
+async function uploadPhotoToDrive(
+  accessToken: string,
+  photoData: string,
+  fileName: string,
+  folderId: string
+): Promise<string> {
+  try {
+    // Check if photoData is base64 or URL
+    let imageBlob: Blob;
+    
+    if (photoData.startsWith('data:image')) {
+      // Base64 image
+      const base64Data = photoData.split(',')[1];
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      imageBlob = new Blob([bytes], { type: 'image/jpeg' });
+    } else {
+      // URL - fetch the image
+      const imageResponse = await fetch(photoData);
+      if (!imageResponse.ok) {
+        throw new Error(`Failed to fetch image from URL: ${imageResponse.statusText}`);
+      }
+      imageBlob = await imageResponse.blob();
+    }
+
+    // Create metadata
+    const metadata = {
+      name: fileName,
+      parents: [folderId],
+      mimeType: 'image/jpeg',
+    };
+
+    // Upload to Google Drive
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', imageBlob);
+
+    const uploadResponse = await fetch(
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: form,
+      }
+    );
+
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text();
+      throw new Error(`Drive upload failed: ${errorText}`);
+    }
+
+    const uploadResult = await uploadResponse.json();
+    
+    // Make the file publicly accessible
+    await fetch(`https://www.googleapis.com/drive/v3/files/${uploadResult.id}/permissions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        role: 'reader',
+        type: 'anyone',
+      }),
+    });
+
+    return `https://drive.google.com/file/d/${uploadResult.id}/view`;
+  } catch (error) {
+    logStep("ERROR uploading photo to Drive", { error: error instanceof Error ? error.message : String(error) });
+    throw error;
+  }
+}
+
+// Helper function to log errors to Google Sheets Logs tab
+async function logErrorToSheet(
+  accessToken: string,
+  sheetId: string,
+  stripeSessionId: string,
+  errorMessage: string,
+  attempts: number
+) {
+  try {
+    const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+    const logData = [timestamp, stripeSessionId, errorMessage, attempts];
+
+    await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Logs!A:D:append?valueInputOption=RAW`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          values: [logData],
+        }),
+      }
+    );
+  } catch (err) {
+    logStep("Failed to log error to Logs sheet", { error: err instanceof Error ? err.message : String(err) });
+  }
+}
+
+// Helper function to check for existing row by Stripe session ID
+async function findExistingRow(
+  accessToken: string,
+  sheetId: string,
+  stripeSessionId: string
+): Promise<number | null> {
+  try {
+    const response = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!G:G`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const values = data.values || [];
+
+    // Find the row index (1-based, skipping header)
+    for (let i = 1; i < values.length; i++) {
+      if (values[i][0] === stripeSessionId) {
+        return i + 1; // Return 1-based row number
+      }
+    }
+
+    return null;
+  } catch (error) {
+    logStep("Error checking for existing row", { error: error instanceof Error ? error.message : String(error) });
+    return null;
+  }
+}
+
+// Helper function to send notification webhook
+async function sendNotification(webhookUrl: string, data: any) {
+  try {
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    logStep("Notification sent", { 
+      url: webhookUrl, 
+      status: response.status 
+    });
+  } catch (error) {
+    logStep("Failed to send notification", { 
+      error: error instanceof Error ? error.message : String(error) 
+    });
+  }
+}
+
 serve(async (req) => {
   logStep("Incoming request", { 
     method: req.method, 
@@ -292,10 +459,14 @@ serve(async (req) => {
           // Get Google Sheets credentials
           const credentialsJson = Deno.env.get("GOOGLE_SHEETS_CREDENTIALS");
           const sheetId = Deno.env.get("GOOGLE_SHEET_ID");
+          const driveFolderId = Deno.env.get("GOOGLE_DRIVE_FOLDER_ID");
+          const notifyWebhook = Deno.env.get("NOTIFY_WEBHOOK_URL");
           
           logStep("Google Sheets configuration check", {
             hasCredentials: !!credentialsJson,
             hasSheetId: !!sheetId,
+            hasDriveFolderId: !!driveFolderId,
+            hasNotifyWebhook: !!notifyWebhook,
             credentialsLength: credentialsJson?.length,
             sheetId: sheetId
           });
@@ -310,9 +481,35 @@ serve(async (req) => {
               projectId: credentials.project_id
             });
             
-            // Get OAuth token from service account
-            logStep("Creating JWT for Google authentication");
-            const jwt = await createJWT(credentials);
+            // Get OAuth token from service account with Drive scope
+            const jwtPayload = {
+              iss: credentials.client_email,
+              scope: "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file",
+              aud: "https://oauth2.googleapis.com/token",
+              exp: Math.floor(Date.now() / 1000) + 3600,
+              iat: Math.floor(Date.now() / 1000),
+            };
+
+            const encodedHeader = base64UrlEncode(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+            const encodedPayload = base64UrlEncode(JSON.stringify(jwtPayload));
+            const unsignedToken = `${encodedHeader}.${encodedPayload}`;
+
+            const privateKey = credentials.private_key;
+            const key = await crypto.subtle.importKey(
+              "pkcs8",
+              pemToArrayBuffer(privateKey),
+              { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+              false,
+              ["sign"]
+            );
+
+            const signature = await crypto.subtle.sign(
+              "RSASSA-PKCS1-v1_5",
+              key,
+              new TextEncoder().encode(unsignedToken)
+            );
+
+            const jwt = `${unsignedToken}.${base64UrlEncode(signature)}`;
             logStep("✅ JWT created, requesting OAuth access token");
             
             const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
@@ -340,42 +537,122 @@ serve(async (req) => {
             
             const { access_token } = await tokenResponse.json();
             logStep("✅ OAuth access token obtained successfully");
+
+            // Check for existing row (idempotency)
+            logStep("🔍 Checking for existing row with Stripe session ID", { sessionId: session.id });
+            const existingRow = await findExistingRow(access_token, sheetId, session.id);
             
-            // Prepare row data matching user's specified format
+            if (existingRow) {
+              logStep("✅ Row already exists, updating instead of creating duplicate", { 
+                rowNumber: existingRow,
+                sessionId: session.id 
+              });
+            }
+
+            // Handle photo uploads to Google Drive
+            let photoLinks = "";
+            if (submission.photos_folder_url && driveFolderId) {
+              logStep("📸 Processing photo uploads to Google Drive");
+              try {
+                // Assuming photos_folder_url contains comma-separated photo URLs or base64 strings
+                const photos = submission.photos_folder_url.split(',').map((p: string) => p.trim());
+                const uploadedLinks: string[] = [];
+
+                for (let i = 0; i < photos.length; i++) {
+                  const fileName = `est_${session.id}_${i + 1}.jpg`;
+                  logStep(`Uploading photo ${i + 1}/${photos.length}`, { fileName });
+                  
+                  const driveLink = await uploadPhotoToDrive(
+                    access_token,
+                    photos[i],
+                    fileName,
+                    driveFolderId
+                  );
+                  uploadedLinks.push(driveLink);
+                }
+
+                photoLinks = uploadedLinks.join(', ');
+                logStep("✅ All photos uploaded to Drive", { 
+                  count: uploadedLinks.length,
+                  links: photoLinks 
+                });
+              } catch (photoError) {
+                const photoErrorMsg = photoError instanceof Error ? photoError.message : String(photoError);
+                logStep("⚠️ Photo upload failed", { error: photoErrorMsg });
+                photoLinks = `ERROR: ${photoErrorMsg}`;
+              }
+            }
+            
+            // Prepare row data with proper timezone
+            const createdAt = new Date(submission.created_at).toLocaleString('en-US', { 
+              timeZone: 'America/New_York',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit'
+            });
+
             const rowData = [
-              submission.email || "", // Name (using email as we don't have a separate name field)
-              submission.phone || "",
-              submission.email || "",
-              `${submission.address}, ${submission.city}, ${submission.zip}`,
-              submission.submission_id || "",
-              "$50.00", // Amount
-              session.id || "", // Stripe session ID
-              submission.status || "",
-              new Date(submission.created_at).toLocaleString() || "",
+              submission.email || "", // A: Name (using email as fallback)
+              submission.phone || "", // B: Phone
+              submission.email || "", // C: Customer_email
+              `${submission.address}, ${submission.city}, ${submission.zip}`, // D: Address
+              submission.submission_id || "", // E: Id
+              "$50.00", // F: Amount
+              session.id || "", // G: Stripe_session_id
+              submission.status || "paid", // H: Status
+              createdAt, // I: Created_at
+              photoLinks, // J: Photos (Drive links)
+              submission.height ? `${submission.height} ${submission.height_unit || ''}` : "", // K: Client_height
+              submission.description || "", // L: Notes
             ];
             
             logStep("Row data prepared for Google Sheets", {
               rowData,
-              rowLength: rowData.length
+              rowLength: rowData.length,
+              isUpdate: !!existingRow
             });
             
-            // Append to Google Sheet
-            const sheetsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:I:append?valueInputOption=RAW`;
-            logStep("Appending row to Google Sheets", { 
-              url: sheetsUrl,
-              submissionId 
-            });
-            
-            const sheetsResponse = await fetch(sheetsUrl, {
-              method: "POST",
-              headers: {
-                "Authorization": `Bearer ${access_token}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                values: [rowData],
-              }),
-            });
+            let sheetsResponse;
+            if (existingRow) {
+              // Update existing row
+              const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A${existingRow}:L${existingRow}?valueInputOption=RAW`;
+              logStep("Updating existing row in Google Sheets", { 
+                url: updateUrl,
+                rowNumber: existingRow 
+              });
+              
+              sheetsResponse = await fetch(updateUrl, {
+                method: "PUT",
+                headers: {
+                  "Authorization": `Bearer ${access_token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  values: [rowData],
+                }),
+              });
+            } else {
+              // Append new row
+              const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:L:append?valueInputOption=RAW`;
+              logStep("Appending new row to Google Sheets", { 
+                url: appendUrl,
+                submissionId 
+              });
+              
+              sheetsResponse = await fetch(appendUrl, {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${access_token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  values: [rowData],
+                }),
+              });
+            }
             
             logStep("Google Sheets API response", {
               status: sheetsResponse.status,
@@ -384,20 +661,40 @@ serve(async (req) => {
             
             if (!sheetsResponse.ok) {
               const errorText = await sheetsResponse.text();
-              logStep("❌ ERROR: Failed to append to Google Sheets", {
+              logStep("❌ ERROR: Failed to sync to Google Sheets", {
                 status: sheetsResponse.status,
                 error: errorText
               });
-              throw new Error(`Failed to append to Google Sheets: ${errorText}`);
+              
+              // Log to Logs sheet
+              await logErrorToSheet(access_token, sheetId, session.id, errorText, 1);
+              
+              throw new Error(`Failed to sync to Google Sheets: ${errorText}`);
             }
             
             const sheetsResult = await sheetsResponse.json();
             logStep("✅ Successfully synced to Google Sheets", { 
               submissionId,
-              updatedRange: sheetsResult.updates?.updatedRange,
-              updatedRows: sheetsResult.updates?.updatedRows,
-              updatedColumns: sheetsResult.updates?.updatedColumns
+              updatedRange: sheetsResult.updatedRange || sheetsResult.updates?.updatedRange,
+              updatedRows: sheetsResult.updatedRows || sheetsResult.updates?.updatedRows,
+              updatedColumns: sheetsResult.updatedColumns || sheetsResult.updates?.updatedColumns,
+              action: existingRow ? "updated" : "appended"
             });
+
+            // Send notification webhook if configured
+            if (notifyWebhook) {
+              logStep("📤 Sending notification webhook");
+              await sendNotification(notifyWebhook, {
+                event: "checkout.session.completed",
+                submission_id: submissionId,
+                stripe_session_id: session.id,
+                customer_email: session.customer_email,
+                amount: "$50.00",
+                status: "paid",
+                created_at: createdAt,
+                action: existingRow ? "updated" : "created"
+              });
+            }
           }
         }
       } catch (sheetsError) {
@@ -409,6 +706,32 @@ serve(async (req) => {
           stack: errorStack,
           submissionId
         });
+
+        // Try to log to Logs sheet
+        try {
+          const credentialsJson = Deno.env.get("GOOGLE_SHEETS_CREDENTIALS");
+          const sheetId = Deno.env.get("GOOGLE_SHEET_ID");
+          if (credentialsJson && sheetId) {
+            const credentials = JSON.parse(credentialsJson);
+            const jwt = await createJWT(credentials);
+            const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: new URLSearchParams({
+                grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                assertion: jwt,
+              }),
+            });
+            if (tokenResponse.ok) {
+              const { access_token } = await tokenResponse.json();
+              await logErrorToSheet(access_token, sheetId, session.id, errorMessage, 1);
+            }
+          }
+        } catch (logError) {
+          logStep("Failed to log error to Logs sheet", { 
+            error: logError instanceof Error ? logError.message : String(logError) 
+          });
+        }
       }
 
       logStep("✅ Webhook processing completed successfully", {
