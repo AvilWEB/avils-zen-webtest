@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.76.1";
 
 const corsHeaders = {
@@ -554,21 +554,40 @@ serve(async (req) => {
             if (submission.photos_folder_url && driveFolderId) {
               logStep("📸 Processing photo uploads to Google Drive");
               try {
-                // Assuming photos_folder_url contains comma-separated photo URLs or base64 strings
+                // photos_folder_url contains comma-separated Supabase storage URLs
                 const photos = submission.photos_folder_url.split(',').map((p: string) => p.trim());
                 const uploadedLinks: string[] = [];
 
                 for (let i = 0; i < photos.length; i++) {
-                  const fileName = `est_${session.id}_${i + 1}.jpg`;
-                  logStep(`Uploading photo ${i + 1}/${photos.length}`, { fileName });
+                  const photoUrl = photos[i];
+                  logStep(`Fetching photo ${i + 1}/${photos.length} from Supabase storage`, { url: photoUrl });
                   
+                  // Fetch photo from Supabase storage using signed URL
+                  const fileName = photoUrl.split('/').pop() || `${i}.jpg`;
+                  const bucketPath = photoUrl.split('/bathroom-photos/')[1];
+                  
+                  logStep(`Getting signed URL for bucket path`, { bucketPath });
+                  
+                  // Get signed URL for the photo
+                  const { data: signedUrlData, error: signedUrlError } = await supabaseClient.storage
+                    .from('bathroom-photos')
+                    .createSignedUrl(bucketPath, 3600); // Valid for 1 hour
+
+                  if (signedUrlError || !signedUrlData?.signedUrl) {
+                    throw new Error(`Failed to get signed URL: ${signedUrlError?.message}`);
+                  }
+
+                  logStep(`Got signed URL, uploading to Drive`, { signedUrl: signedUrlData.signedUrl.substring(0, 50) + '...' });
+
+                  const driveFileName = `est_${session.id}_${i + 1}.jpg`;
                   const driveLink = await uploadPhotoToDrive(
                     access_token,
-                    photos[i],
-                    fileName,
+                    signedUrlData.signedUrl,
+                    driveFileName,
                     driveFolderId
                   );
                   uploadedLinks.push(driveLink);
+                  logStep(`✅ Photo ${i + 1} uploaded to Drive`, { driveLink });
                 }
 
                 photoLinks = uploadedLinks.join(', ');
@@ -578,7 +597,8 @@ serve(async (req) => {
                 });
               } catch (photoError) {
                 const photoErrorMsg = photoError instanceof Error ? photoError.message : String(photoError);
-                logStep("⚠️ Photo upload failed", { error: photoErrorMsg });
+                const photoErrorStack = photoError instanceof Error ? photoError.stack : undefined;
+                logStep("⚠️ Photo upload failed", { error: photoErrorMsg, stack: photoErrorStack });
                 photoLinks = `ERROR: ${photoErrorMsg}`;
               }
             }
@@ -594,8 +614,11 @@ serve(async (req) => {
               second: '2-digit'
             });
 
+            // Extract name from email (before @)
+            const nameFromEmail = submission.email ? submission.email.split('@')[0].replace(/[._]/g, ' ').split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ') : '';
+            
             const rowData = [
-              submission.email || "", // A: Name (using email as fallback)
+              nameFromEmail || submission.email || "", // A: Name (extracted from email)
               submission.phone || "", // B: Phone
               submission.email || "", // C: Customer_email
               `${submission.address}, ${submission.city}, ${submission.zip}`, // D: Address
