@@ -3,6 +3,10 @@ import { X } from "lucide-react";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 import sandyHookBefore from "@/assets/sandy-hook-before.jpg";
 import sandyHookAfter from "@/assets/sandy-hook-after.jpg";
+import beforeBBB from "@/assets/before-BBB.jpg";
+import afterBBB from "@/assets/after-BBB.jpg";
+import beforeCCC from "@/assets/before-CCC.jpg";
+import afterCCC from "@/assets/after-CCC.jpg";
 
 const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -40,10 +44,34 @@ const Gallery = () => {
     },
   ];
 
+  const beforeAfterComparisons = [
+    {
+      before: sandyHookBefore,
+      after: sandyHookAfter,
+      beforeAlt: "Sandy Hook bathroom before renovation",
+      afterAlt: "Sandy Hook bathroom after renovation",
+      title: "Sandy Hook Transformation",
+    },
+    {
+      before: beforeBBB,
+      after: afterBBB,
+      beforeAlt: "Bathroom before renovation - outdated design",
+      afterAlt: "Bathroom after renovation - elegant clawfoot tub",
+      title: "Classic Elegance",
+    },
+    {
+      before: beforeCCC,
+      after: afterCCC,
+      beforeAlt: "Bathroom before renovation - construction phase",
+      afterAlt: "Bathroom after renovation - modern spa retreat",
+      title: "Modern Spa Retreat",
+    },
+  ];
+
   return (
-    <section id="gallery" className="py-20 md:py-32 px-4 bg-card">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
+    <section id="gallery" className="py-20 md:py-32 bg-card">
+      <div className="max-w-[1800px] mx-auto">
+        <div className="text-center mb-16 px-4">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
             Before / Process / After
           </h2>
@@ -53,34 +81,34 @@ const Gallery = () => {
           </p>
         </div>
 
-        {/* Before/After Sliders Section */}
-        <div className="mb-16">
-          <h3 className="text-2xl md:text-3xl font-bold mb-8 text-foreground text-center">
+        {/* Before/After Sliders Section - Edge to Edge */}
+        <div className="mb-20">
+          <h3 className="text-2xl md:text-3xl font-bold mb-10 text-foreground text-center px-4">
             Interactive Comparisons
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            <BeforeAfterSlider
-              beforeImage={sandyHookBefore}
-              afterImage={sandyHookAfter}
-              beforeAlt="Sandy Hook bathroom before renovation"
-              afterAlt="Sandy Hook bathroom after renovation"
-            />
-            {/* Placeholder for future before/after sliders */}
-            <div className="aspect-video bg-muted/30 rounded-2xl border-2 border-dashed border-muted flex items-center justify-center text-muted-foreground">
-              Coming Soon
-            </div>
-            <div className="aspect-video bg-muted/30 rounded-2xl border-2 border-dashed border-muted flex items-center justify-center text-muted-foreground">
-              Coming Soon
-            </div>
+          <div className="space-y-8 px-4 md:px-8 lg:px-12">
+            {beforeAfterComparisons.map((comparison, index) => (
+              <div key={index} className="max-w-[1600px] mx-auto">
+                <p className="text-lg font-medium text-muted-foreground mb-3 text-center">
+                  {comparison.title}
+                </p>
+                <BeforeAfterSlider
+                  beforeImage={comparison.before}
+                  afterImage={comparison.after}
+                  beforeAlt={comparison.beforeAlt}
+                  afterAlt={comparison.afterAlt}
+                />
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Gallery Grid */}
-        <div>
+        <div className="px-4">
           <h3 className="text-2xl md:text-3xl font-bold mb-8 text-foreground text-center">
             Gallery
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 max-w-7xl mx-auto">
             {images.map((image, index) => (
               <div
                 key={index}
