@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import BeforeAfterSlider from "./BeforeAfterSlider";
-import sandyHookBefore from "@/assets/sandy-hook-before.jpg";
-import sandyHookAfter from "@/assets/sandy-hook-after.jpg";
+import beforeAAA from "@/assets/before-AAA.jpg";
+import afterAAA from "@/assets/after-AAA.jpg";
 import beforeBBB from "@/assets/before-BBB.jpg";
 import afterBBB from "@/assets/after-BBB.jpg";
 import beforeCCC from "@/assets/before-CCC.jpg";
@@ -46,25 +46,25 @@ const Gallery = () => {
 
   const beforeAfterComparisons = [
     {
-      before: sandyHookBefore,
-      after: sandyHookAfter,
-      beforeAlt: "Sandy Hook bathroom before renovation",
-      afterAlt: "Sandy Hook bathroom after renovation",
-      title: "Sandy Hook Transformation",
+      before: beforeAAA,
+      after: afterAAA,
+      beforeAlt: "Bathroom before renovation - outdated purple walls",
+      afterAlt: "Bathroom after renovation - elegant dark tile and freestanding tub",
+      title: "Modern Elegance",
     },
     {
       before: beforeBBB,
       after: afterBBB,
-      beforeAlt: "Bathroom before renovation - outdated design",
-      afterAlt: "Bathroom after renovation - elegant clawfoot tub",
-      title: "Classic Elegance",
+      beforeAlt: "Bathroom before renovation - dated design",
+      afterAlt: "Bathroom after renovation - luxury clawfoot tub",
+      title: "Classic Luxury",
     },
     {
       before: beforeCCC,
       after: afterCCC,
-      beforeAlt: "Bathroom before renovation - construction phase",
+      beforeAlt: "Bathroom during renovation - construction phase",
       afterAlt: "Bathroom after renovation - modern spa retreat",
-      title: "Modern Spa Retreat",
+      title: "Spa Retreat",
     },
   ];
 
@@ -81,15 +81,15 @@ const Gallery = () => {
           </p>
         </div>
 
-        {/* Before/After Sliders Section - Edge to Edge */}
+        {/* Before/After Sliders Section */}
         <div className="mb-20">
           <h3 className="text-2xl md:text-3xl font-bold mb-10 text-foreground text-center px-4">
             Interactive Comparisons
           </h3>
-          <div className="space-y-8 px-4 md:px-8 lg:px-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 px-4 md:px-8 lg:px-12 max-w-7xl mx-auto">
             {beforeAfterComparisons.map((comparison, index) => (
-              <div key={index} className="max-w-[1600px] mx-auto">
-                <p className="text-lg font-medium text-muted-foreground mb-3 text-center">
+              <div key={index} className="flex flex-col">
+                <p className="text-base font-medium text-muted-foreground mb-3 text-center">
                   {comparison.title}
                 </p>
                 <BeforeAfterSlider
@@ -97,6 +97,7 @@ const Gallery = () => {
                   afterImage={comparison.after}
                   beforeAlt={comparison.beforeAlt}
                   afterAlt={comparison.afterAlt}
+                  aspectRatio="5/7"
                 />
               </div>
             ))}

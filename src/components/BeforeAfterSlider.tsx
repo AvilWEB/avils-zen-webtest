@@ -6,6 +6,7 @@ interface BeforeAfterSliderProps {
   afterImage: string;
   beforeAlt?: string;
   afterAlt?: string;
+  aspectRatio?: string;
 }
 
 const BeforeAfterSlider = ({
@@ -13,6 +14,7 @@ const BeforeAfterSlider = ({
   afterImage,
   beforeAlt = "Before renovation",
   afterAlt = "After renovation",
+  aspectRatio = "5/7",
 }: BeforeAfterSliderProps) => {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -64,7 +66,8 @@ const BeforeAfterSlider = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full aspect-video overflow-hidden rounded-2xl shadow-soft hover:shadow-elegant transition-all duration-300 cursor-col-resize select-none"
+      className="relative w-full overflow-hidden rounded-2xl shadow-soft hover:shadow-elegant transition-all duration-300 cursor-col-resize select-none"
+      style={{ aspectRatio }}
       onMouseDown={handleStart}
       onTouchStart={handleStart}
     >
