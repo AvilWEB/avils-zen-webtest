@@ -135,7 +135,7 @@ const PrivacyPolicyModal = ({ isOpen, onClose }: PrivacyPolicyModalProps) => {
                     Email: <a href="mailto:info@avilsbathrooms.com" className="text-primary hover:underline">info@avilsbathrooms.com</a>
                   </p>
                   <p>
-                    Phone: <a href="tel:+12035566761" className="text-primary hover:underline">+1 (203) 556-6761</a>
+                    Phone: <a href="tel:+14753510934" className="text-primary hover:underline">+1 (475) 351-0934</a>
                   </p>
                 </div>
               </section>

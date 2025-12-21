@@ -28,11 +28,11 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4">Contact</h4>
             <div className="space-y-3">
               <a 
-                href="tel:+12035566761"
+                href="tel:+14753510934"
                 className="flex items-center gap-3 text-background/80 hover:text-background transition-colors"
               >
                 <Phone className="w-5 h-5" />
-                <span>+1 (203) 556-6761</span>
+                <span>+1 (475) 351-0934</span>
               </a>
               <a 
                 href="mailto:info@avilsbathrooms.com"
