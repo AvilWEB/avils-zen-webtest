@@ -29,7 +29,7 @@ const Testimonials = () => {
     },
     {
       name: "Michelle Craine",
-      location: "Connecticut",
+      location: "Newtown, CT",
       text: "The attention to details was phenomenal. It came out beautiful and year later we still absolutely love it.",
       rating: 5,
       hasVideo: true,
