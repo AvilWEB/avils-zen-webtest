@@ -127,7 +127,7 @@ const Gallery = () => {
         {/* Video Lightbox */}
         {selectedVideo && (
           <div
-            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
             onClick={() => setSelectedVideo(null)}
           >
             <button
