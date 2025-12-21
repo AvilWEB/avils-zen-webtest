@@ -20,7 +20,7 @@ const Testimonials = () => {
     },
     {
       name: "Dave",
-      location: "Brookfield",
+      location: "Brookfield, CT",
       text: "Very happy for the job very professional, neat polite. Couldn't be a better job thank you.",
       rating: 5,
       hasVideo: true,
