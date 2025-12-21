@@ -1,10 +1,13 @@
 import { Star, Shield, Award, Play } from "lucide-react";
 import { useState } from "react";
 import VideoTestimonialModal from "./VideoTestimonialModal";
-import testimonialCover from "@/assets/testimonial-andy-erin-cover.jpg";
+import testimonialAndyErinCover from "@/assets/testimonial-andy-erin-cover.jpg";
+import testimonialDaveCover from "@/assets/testimonial-dave-cover.jpg";
+import testimonialMichelleCover from "@/assets/testimonial-michelle-craine-cover.jpg";
 
 const Testimonials = () => {
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [activeVideo, setActiveVideo] = useState<{ url: string; name: string } | null>(null);
+  
   const testimonials = [
     {
       name: "Andy And Erin Bosco",
@@ -12,20 +15,26 @@ const Testimonials = () => {
       text: "The whole process was perfect. So very communicative, super respectful about our schedule. We have a family, we've got kids. We had a whole thing built outside the bathroom to keep the dust and the construction to a minimum, which is wonderful.",
       rating: 5,
       hasVideo: true,
-      videoCover: testimonialCover,
+      videoCover: testimonialAndyErinCover,
       videoUrl: "/testimonial-andy-erin.mp4",
     },
     {
-      name: "Michael R.",
-      location: "Bridgeport",
-      text: "Professional, punctual, and perfection-driven. Avil's European training really shows in the craftsmanship.",
+      name: "Dave",
+      location: "Brookfield",
+      text: "Incredible attention to detail and craftsmanship. The team was professional from start to finish, and the result exceeded all my expectations.",
       rating: 5,
+      hasVideo: true,
+      videoCover: testimonialDaveCover,
+      videoUrl: "/testimonial-dave.mp4",
     },
     {
-      name: "Jennifer K.",
-      location: "Stamford",
-      text: "From consultation to completion, the experience was seamless. Our bathroom is now the most beautiful room in our home.",
+      name: "Michelle Craine",
+      location: "Connecticut",
+      text: "Amazing transformation of our bathroom. The quality of work and communication throughout the project was exceptional.",
       rating: 5,
+      hasVideo: true,
+      videoCover: testimonialMichelleCover,
+      videoUrl: "/testimonial-michelle-craine.mp4",
     },
   ];
 
@@ -58,7 +67,7 @@ const Testimonials = () => {
               {testimonial.hasVideo && (
                 <div 
                   className="relative cursor-pointer group"
-                  onClick={() => setIsVideoOpen(true)}
+                  onClick={() => setActiveVideo({ url: testimonial.videoUrl, name: testimonial.name })}
                 >
                   <img 
                     src={testimonial.videoCover} 
@@ -105,10 +114,10 @@ const Testimonials = () => {
 
         {/* Video Modal */}
         <VideoTestimonialModal
-          isOpen={isVideoOpen}
-          onClose={() => setIsVideoOpen(false)}
-          videoUrl="/testimonial-andy-erin.mp4"
-          customerName="Andy And Erin Bosco"
+          isOpen={!!activeVideo}
+          onClose={() => setActiveVideo(null)}
+          videoUrl={activeVideo?.url || ""}
+          customerName={activeVideo?.name || ""}
         />
 
         {/* Trust Badges */}
