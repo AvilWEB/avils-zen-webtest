@@ -11,7 +11,7 @@ const Testimonials = () => {
   const testimonials = [
     {
       name: "Andy And Erin Bosco",
-      location: "Sandyhook",
+      location: "Sandyhook, CT",
       text: "The whole process was perfect. So very communicative, super respectful about our schedule. We have a family, we've got kids. We had a whole thing built outside the bathroom to keep the dust and the construction to a minimum, which is wonderful.",
       rating: 5,
       hasVideo: true,
