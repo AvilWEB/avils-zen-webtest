@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Play } from "lucide-react";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 import beforeAAA from "@/assets/before-AAA.jpg";
 import afterAAA from "@/assets/after-AAA.jpg";
@@ -7,40 +7,28 @@ import beforeBBB from "@/assets/before-BBB.jpg";
 import afterBBB from "@/assets/after-BBB.jpg";
 import beforeCCC from "@/assets/before-CCC.jpg";
 import afterCCC from "@/assets/after-CCC.jpg";
+import thumbnailAndyErin from "@/assets/thumbnail-andy-erin.jpg";
+import thumbnailDave from "@/assets/thumbnail-dave.jpg";
+import thumbnailMichelleCraine from "@/assets/thumbnail-michelle-craine.jpg";
 
 const Gallery = () => {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
-  const images = [
+  const videos = [
     {
-      url: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=80",
-      alt: "Modern marble bathroom with natural lighting",
-      category: "After",
+      video: "/videos/bathroom-andy-erin.mp4",
+      thumbnail: thumbnailAndyErin,
+      description: "Andy and Erin bathroom in Sandyhook",
     },
     {
-      url: "https://images.unsplash.com/photo-1604709177225-055f99402ea3?w=800&q=80",
-      alt: "Elegant tile work detail",
-      category: "Process",
+      video: "/videos/bathroom-dave.mp4",
+      thumbnail: thumbnailDave,
+      description: "Daves bathroom in Brookfield",
     },
     {
-      url: "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=800&q=80",
-      alt: "Luxury bathroom renovation completed",
-      category: "After",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800&q=80",
-      alt: "Custom shower installation",
-      category: "Process",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80",
-      alt: "Contemporary bathroom design",
-      category: "After",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=800&q=80",
-      alt: "Detailed finishing work",
-      category: "Process",
+      video: "/videos/bathroom-michelle-craine.mp4",
+      thumbnail: thumbnailMichelleCraine,
+      description: "Michelle Craine bathroom in Connecticut",
     },
   ];
 
@@ -104,51 +92,56 @@ const Gallery = () => {
           </div>
         </div>
 
-        {/* Gallery Grid */}
+        {/* Video Gallery */}
         <div className="px-4">
           <h3 className="text-2xl md:text-3xl font-bold mb-8 text-foreground text-center">
-            Gallery
+            Project Videos
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 max-w-7xl mx-auto">
-            {images.map((image, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto">
+            {videos.map((item, index) => (
               <div
                 key={index}
-                className="group relative aspect-square overflow-hidden rounded-2xl cursor-pointer shadow-soft hover:shadow-elegant transition-all duration-300"
-                onClick={() => setSelectedImage(image.url)}
+                className="group relative aspect-video overflow-hidden rounded-2xl cursor-pointer shadow-soft hover:shadow-elegant transition-all duration-300"
+                onClick={() => setSelectedVideo(item.video)}
               >
                 <img
-                  src={image.url}
-                  alt={image.alt}
+                  src={item.thumbnail}
+                  alt={item.description}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <span className="inline-block px-3 py-1 bg-primary text-primary-foreground text-sm rounded-lg font-medium">
-                      {image.category}
-                    </span>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <Play className="w-7 h-7 text-primary-foreground ml-1" fill="currentColor" />
+                    </div>
                   </div>
+                  <p className="text-white text-sm md:text-base font-medium relative z-10">
+                    {item.description}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Lightbox */}
-        {selectedImage && (
+        {/* Video Lightbox */}
+        {selectedVideo && (
           <div
-            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-            onClick={() => setSelectedImage(null)}
+            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+            onClick={() => setSelectedVideo(null)}
           >
             <button
-              className="absolute top-4 right-4 text-white hover:text-primary transition-colors"
-              onClick={() => setSelectedImage(null)}
+              className="absolute top-4 right-4 text-white hover:text-primary transition-colors z-10"
+              onClick={() => setSelectedVideo(null)}
             >
               <X className="w-8 h-8" />
             </button>
-            <img
-              src={selectedImage}
-              alt="Full size preview"
-              className="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl"
+            <video
+              src={selectedVideo}
+              controls
+              autoPlay
+              className="max-h-[90vh] max-w-[90vw] rounded-2xl"
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
         )}
