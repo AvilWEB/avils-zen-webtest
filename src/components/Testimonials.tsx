@@ -66,16 +66,16 @@ const Testimonials = () => {
               {/* Video Thumbnail (if available) */}
               {testimonial.hasVideo && (
                 <div 
-                  className="relative cursor-pointer group"
+                  className="relative cursor-pointer group overflow-hidden"
                   onClick={() => setActiveVideo({ url: testimonial.videoUrl, name: testimonial.name })}
                 >
                   <img 
                     src={testimonial.videoCover} 
                     alt={`${testimonial.name} testimonial video`}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-foreground/40 group-hover:bg-foreground/50 transition-all flex items-center justify-center">
-                    <div className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                       <Play className="w-8 h-8 text-primary-foreground ml-1" fill="currentColor" />
                     </div>
                   </div>
