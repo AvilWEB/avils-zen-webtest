@@ -21,7 +21,7 @@ const Testimonials = () => {
     {
       name: "Dave",
       location: "Brookfield",
-      text: "Incredible attention to detail and craftsmanship. The team was professional from start to finish, and the result exceeded all my expectations.",
+      text: "Very happy for the job very professional, neat polite. Couldn't be a better job thank you.",
       rating: 5,
       hasVideo: true,
       videoCover: testimonialDaveCover,
