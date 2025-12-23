@@ -2,6 +2,10 @@ import { Check } from "lucide-react";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import beforeDave from "@/assets/before-AAA.jpg";
 import afterDave from "@/assets/after-AAA.jpg";
+import framingWide from "@/assets/framing-wide-full-room.jpg";
+import framingMedium from "@/assets/framing-medium-key-features.jpg";
+import framingDetail from "@/assets/framing-detail-craftsmanship.jpg";
+import framingLifestyle from "@/assets/framing-lifestyle-in-use.jpg";
 
 const PhotographyStyle = () => {
   return (
@@ -80,28 +84,48 @@ const PhotographyStyle = () => {
         <h3 className="font-heading text-2xl text-foreground mb-6">Framing & Angles</h3>
         <div className="grid md:grid-cols-4 gap-4">
           <div className="bg-card rounded-xl p-4 border border-border text-center">
-            <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center">
-              <span className="text-xs text-muted-foreground font-body">Wide</span>
+            <div className="aspect-square rounded-lg mb-3 overflow-hidden">
+              <img 
+                src={framingWide} 
+                alt="Wide shot - Full Room" 
+                className="w-full h-full object-cover"
+              />
             </div>
-            <span className="text-sm font-body text-foreground">Full Room</span>
+            <span className="text-xs text-primary font-body uppercase tracking-wider">Wide</span>
+            <p className="text-sm font-body text-foreground mt-1">Full Room</p>
           </div>
           <div className="bg-card rounded-xl p-4 border border-border text-center">
-            <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center">
-              <span className="text-xs text-muted-foreground font-body">Medium</span>
+            <div className="aspect-square rounded-lg mb-3 overflow-hidden">
+              <img 
+                src={framingMedium} 
+                alt="Medium shot - Key Features" 
+                className="w-full h-full object-cover"
+              />
             </div>
-            <span className="text-sm font-body text-foreground">Key Features</span>
+            <span className="text-xs text-primary font-body uppercase tracking-wider">Medium</span>
+            <p className="text-sm font-body text-foreground mt-1">Key Features</p>
           </div>
           <div className="bg-card rounded-xl p-4 border border-border text-center">
-            <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center">
-              <span className="text-xs text-muted-foreground font-body">Detail</span>
+            <div className="aspect-square rounded-lg mb-3 overflow-hidden">
+              <img 
+                src={framingDetail} 
+                alt="Detail shot - Craftsmanship" 
+                className="w-full h-full object-cover"
+              />
             </div>
-            <span className="text-sm font-body text-foreground">Craftsmanship</span>
+            <span className="text-xs text-primary font-body uppercase tracking-wider">Detail</span>
+            <p className="text-sm font-body text-foreground mt-1">Craftsmanship</p>
           </div>
           <div className="bg-card rounded-xl p-4 border border-border text-center">
-            <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center">
-              <span className="text-xs text-muted-foreground font-body">Lifestyle</span>
+            <div className="aspect-square rounded-lg mb-3 overflow-hidden">
+              <img 
+                src={framingLifestyle} 
+                alt="Lifestyle shot - In Use" 
+                className="w-full h-full object-cover"
+              />
             </div>
-            <span className="text-sm font-body text-foreground">In Use</span>
+            <span className="text-xs text-primary font-body uppercase tracking-wider">Lifestyle</span>
+            <p className="text-sm font-body text-foreground mt-1">In Use</p>
           </div>
         </div>
       </div>
