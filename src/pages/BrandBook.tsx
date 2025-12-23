@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import BrandBookHero from "@/components/brandbook/BrandBookHero";
 import BrandBookNav from "@/components/brandbook/BrandBookNav";
 import BrandEssence from "@/components/brandbook/BrandEssence";
@@ -108,9 +110,20 @@ const BrandBook = () => {
               <DigitalPrintApplications />
             </section>
             
-            <section id="philosophy" className="scroll-mt-24 mt-32 pb-32">
+            <section id="philosophy" className="scroll-mt-24 mt-32">
               <BrandPhilosophy />
             </section>
+            
+            {/* Back to Website Button */}
+            <div className="mt-32 pb-32 text-center">
+              <Link 
+                to="/"
+                className="inline-flex items-center gap-3 bg-primary text-primary-foreground px-8 py-4 rounded-full font-body text-lg hover:bg-primary/90 transition-colors group"
+              >
+                Visit Main Website
+                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
           </div>
         </main>
       </div>
