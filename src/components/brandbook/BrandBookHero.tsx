@@ -5,7 +5,7 @@ const BrandBookHero = () => {
   const [isMuted, setIsMuted] = useState(true);
 
   return (
-    <section className="relative h-screen w-full overflow-hidden">
+    <section className="relative h-screen w-screen overflow-hidden">
       <video
         autoPlay
         loop

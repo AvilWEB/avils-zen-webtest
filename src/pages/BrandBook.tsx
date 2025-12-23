@@ -59,7 +59,9 @@ const BrandBook = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <BrandBookHero />
+      <div className="relative">
+        <BrandBookHero />
+      </div>
       
       <div className="flex">
         <BrandBookNav 
