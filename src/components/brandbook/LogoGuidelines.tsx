@@ -1,4 +1,7 @@
 import { Check, X } from "lucide-react";
+import logoDarkBg from "@/assets/logo-dark-bg.png";
+import logoLightBgGold from "@/assets/logo-light-bg-gold.png";
+import logoLightBgDark from "@/assets/logo-light-bg-dark.png";
 
 const LogoGuidelines = () => {
   return (
@@ -16,21 +19,48 @@ const LogoGuidelines = () => {
         </p>
       </div>
 
-      {/* Primary Logo Display */}
-      <div className="grid md:grid-cols-2 gap-8 mb-16">
-        <div className="bg-background rounded-2xl p-12 border border-border flex items-center justify-center">
-          <img 
-            src="/avils-logo.gif" 
-            alt="AVIL's Bathrooms Logo - Light Background" 
-            className="h-20"
-          />
-        </div>
-        <div className="bg-foreground rounded-2xl p-12 flex items-center justify-center">
-          <img 
-            src="/avils-logo.gif" 
-            alt="AVIL's Bathrooms Logo - Dark Background" 
-            className="h-20"
-          />
+      {/* Logo Variations */}
+      <div className="mb-16">
+        <h3 className="font-heading text-2xl text-foreground mb-6">Logo Variations</h3>
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Dark Background - Gold Logo */}
+          <div className="rounded-2xl overflow-hidden">
+            <img 
+              src={logoDarkBg} 
+              alt="AVIL's Bathrooms Logo - Dark Background" 
+              className="w-full aspect-square object-cover"
+            />
+            <div className="bg-card border border-border border-t-0 rounded-b-2xl p-4">
+              <p className="text-sm font-body text-foreground font-medium">Primary - Dark Background</p>
+              <p className="text-xs text-muted-foreground mt-1">Gold logo on dark surfaces</p>
+            </div>
+          </div>
+          
+          {/* Light Background - Gold Logo */}
+          <div className="rounded-2xl overflow-hidden">
+            <img 
+              src={logoLightBgGold} 
+              alt="AVIL's Bathrooms Logo - Light Background Gold" 
+              className="w-full aspect-square object-cover"
+            />
+            <div className="bg-card border border-border border-t-0 rounded-b-2xl p-4">
+              <p className="text-sm font-body text-foreground font-medium">Primary - Light Background</p>
+              <p className="text-xs text-muted-foreground mt-1">Gold logo on light surfaces</p>
+            </div>
+          </div>
+          
+          {/* Light Background - Dark Logo */}
+          <div className="rounded-2xl overflow-hidden">
+            <img 
+              src={logoLightBgDark} 
+              alt="AVIL's Bathrooms Logo - Light Background Dark" 
+              className="w-full aspect-square object-cover"
+            />
+            <div className="bg-card border border-border border-t-0 rounded-b-2xl p-4">
+              <p className="text-sm font-body text-foreground font-medium">Monochrome Variant</p>
+              <p className="text-xs text-muted-foreground mt-1">Dark logo for single-color applications</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -40,12 +70,12 @@ const LogoGuidelines = () => {
         <div className="bg-card rounded-2xl p-8 border border-border">
           <div className="relative flex items-center justify-center py-12">
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-48 h-32 border-2 border-dashed border-primary/30 rounded-lg" />
+              <div className="w-64 h-48 border-2 border-dashed border-primary/30 rounded-lg" />
             </div>
             <img 
-              src="/avils-logo.gif" 
+              src={logoLightBgGold} 
               alt="Logo with clear space" 
-              className="h-12 relative z-10"
+              className="h-32 relative z-10 object-contain"
             />
           </div>
           <p className="text-muted-foreground font-body text-sm text-center mt-4">
@@ -59,20 +89,20 @@ const LogoGuidelines = () => {
         <h3 className="font-heading text-2xl text-foreground mb-6">Minimum Size</h3>
         <div className="grid md:grid-cols-3 gap-6">
           <div className="bg-card rounded-xl p-6 border border-border text-center">
-            <div className="h-20 flex items-center justify-center">
-              <img src="/avils-logo.gif" alt="Print size" className="h-8" />
+            <div className="h-24 flex items-center justify-center">
+              <img src={logoLightBgDark} alt="Print size" className="h-16 object-contain" />
             </div>
             <p className="text-sm text-muted-foreground font-body mt-2">Print: 25mm width</p>
           </div>
           <div className="bg-card rounded-xl p-6 border border-border text-center">
-            <div className="h-20 flex items-center justify-center">
-              <img src="/avils-logo.gif" alt="Digital size" className="h-6" />
+            <div className="h-24 flex items-center justify-center">
+              <img src={logoLightBgDark} alt="Digital size" className="h-12 object-contain" />
             </div>
             <p className="text-sm text-muted-foreground font-body mt-2">Digital: 80px width</p>
           </div>
           <div className="bg-card rounded-xl p-6 border border-border text-center">
-            <div className="h-20 flex items-center justify-center">
-              <img src="/avils-logo.gif" alt="Favicon size" className="h-4" />
+            <div className="h-24 flex items-center justify-center">
+              <img src={logoLightBgDark} alt="Favicon size" className="h-8 object-contain" />
             </div>
             <p className="text-sm text-muted-foreground font-body mt-2">Favicon: 32px</p>
           </div>
