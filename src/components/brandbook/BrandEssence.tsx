@@ -46,7 +46,7 @@ const BrandEssence = () => {
           </div>)}
       </div>
       
-      <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl p-8 md:p-12 border border-primary/10">
+      <div className="bg-gradient-to-br from-sky-600/20 to-cyan-500/10 rounded-2xl p-8 md:p-12 border border-sky-500/20">
         <h3 className="font-heading text-2xl text-foreground mb-4">
           Contemporary Renaissance
         </h3>
