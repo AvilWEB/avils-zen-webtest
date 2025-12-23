@@ -13,10 +13,11 @@ const Hero = ({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
+    setIsMuted((prev) => {
+      const next = !prev;
+      if (videoRef.current) videoRef.current.muted = next;
+      return next;
+    });
   };
 
   const scrollToGallery = () => {
@@ -26,18 +27,19 @@ const Hero = ({
     });
   };
 
-  const handleCanPlay = () => {
+  const handleReady = () => {
     setIsLoading(false);
   };
 
-  const handleWaiting = () => {
-    setIsLoading(true);
+  const handleVideoError = () => {
+    console.error("Hero video failed to load: /baner-video-main.mp4");
+    setIsLoading(false);
   };
 
-  return <section className="relative h-screen w-full overflow-hidden bg-[#E5E2D5]">
+  return <section className="relative h-screen w-full overflow-hidden bg-background">
       {/* Loading Indicator */}
       {isLoading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#E5E2D5]">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background">
           <Loader2 className="w-12 h-12 text-foreground/60 animate-spin" />
         </div>
       )}
@@ -47,11 +49,14 @@ const Hero = ({
         <video 
           ref={videoRef} 
           autoPlay 
-          muted 
+          muted={isMuted}
           loop 
           playsInline 
-          onCanPlay={handleCanPlay}
-          onWaiting={handleWaiting}
+          preload="auto"
+          onCanPlay={handleReady}
+          onLoadedData={handleReady}
+          onPlaying={handleReady}
+          onError={handleVideoError}
           className="w-full h-full object-contain"
         >
           <source src="/baner-video-main.mp4" type="video/mp4" />
