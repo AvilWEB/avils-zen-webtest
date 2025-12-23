@@ -11,7 +11,7 @@ const BrandBookHero = () => {
         loop
         muted={isMuted}
         playsInline
-        className="absolute inset-0 w-full h-full object-contain bg-foreground"
+        className="absolute inset-0 w-full h-full object-contain bg-background"
       >
         <source src="/baner-video.mp4" type="video/mp4" />
       </video>
