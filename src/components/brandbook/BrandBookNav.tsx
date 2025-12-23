@@ -8,7 +8,7 @@ interface BrandBookNavProps {
 
 const BrandBookNav = ({ sections, activeSection, onSectionClick }: BrandBookNavProps) => {
   return (
-    <nav className="hidden lg:flex fixed left-0 top-0 h-screen w-64 bg-card border-r border-border flex-col justify-center px-8 z-50">
+    <nav className="hidden lg:flex fixed left-0 top-[100vh] h-screen w-64 bg-card border-r border-border flex-col justify-center px-8 z-50">
       <div className="mb-8">
         <img 
           src="/avils-logo.gif" 
