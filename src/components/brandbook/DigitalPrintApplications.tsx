@@ -21,31 +21,18 @@ const DigitalPrintApplications = () => {
       <div className="mb-16">
         <h3 className="font-heading text-2xl text-foreground mb-6">Website Sections</h3>
         <div className="bg-foreground rounded-2xl p-4 overflow-hidden">
-          <div className="bg-background rounded-xl overflow-hidden">
-            {/* Mock Header */}
-            <div className="bg-card px-6 py-4 border-b border-border flex items-center justify-between">
-              <div className="h-6 w-24 bg-primary/20 rounded" />
-              <div className="flex gap-4">
-                <div className="h-4 w-16 bg-muted rounded" />
-                <div className="h-4 w-16 bg-muted rounded" />
-                <div className="h-4 w-16 bg-muted rounded" />
-              </div>
-            </div>
-            {/* Mock Hero */}
-            <div className="aspect-[21/9] bg-gradient-to-br from-foreground/80 to-foreground/60 flex items-center justify-center">
-              <div className="text-center text-background">
-                <div className="h-8 w-48 bg-background/20 rounded mx-auto mb-4" />
-                <div className="h-4 w-64 bg-background/10 rounded mx-auto" />
-              </div>
-            </div>
-            {/* Mock Content */}
-            <div className="p-8 grid grid-cols-3 gap-4">
-              <div className="aspect-square bg-muted rounded-lg" />
-              <div className="aspect-square bg-muted rounded-lg" />
-              <div className="aspect-square bg-muted rounded-lg" />
-            </div>
-          </div>
+          <video
+            src="/videos/website-sample.mov"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full rounded-xl"
+          />
         </div>
+        <p className="text-muted-foreground font-body text-sm mt-4">
+          Website design showcasing brand consistency across digital touchpoints
+        </p>
       </div>
 
       {/* Business Cards */}
