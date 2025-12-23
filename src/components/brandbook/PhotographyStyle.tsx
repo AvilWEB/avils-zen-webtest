@@ -1,4 +1,7 @@
 import { Check } from "lucide-react";
+import BeforeAfterSlider from "@/components/BeforeAfterSlider";
+import beforeDave from "@/assets/before-AAA.jpg";
+import afterDave from "@/assets/after-AAA.jpg";
 
 const PhotographyStyle = () => {
   return (
@@ -16,41 +19,28 @@ const PhotographyStyle = () => {
         </p>
       </div>
 
-      {/* Photo Guidelines Grid */}
-      <div className="grid md:grid-cols-2 gap-8 mb-16">
-        {/* Before/After */}
+      {/* Before/After Interactive */}
+      <div className="mb-16">
         <div className="bg-card rounded-2xl p-8 border border-border">
-          <h3 className="font-heading text-xl text-foreground mb-4">Before / After Shots</h3>
-          <div className="aspect-[4/3] bg-gradient-to-br from-muted to-muted/50 rounded-xl mb-4 flex items-center justify-center">
-            <span className="text-muted-foreground/50 font-body">Example Image</span>
+          <h3 className="font-heading text-xl text-foreground mb-6">Before / After Shots</h3>
+          <div className="max-w-3xl mx-auto mb-6">
+            <BeforeAfterSlider
+              beforeImage={beforeDave}
+              afterImage={afterDave}
+              beforeAlt="Dave's Bathroom - Before"
+              afterAlt="Dave's Bathroom - After"
+              aspectRatio="4/3"
+            />
           </div>
-          <ul className="space-y-2">
+          <p className="text-center text-sm text-muted-foreground font-body mb-6">
+            Dave's Bathroom Transformation — Drag the slider to compare
+          </p>
+          <ul className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
             {[
               "Same camera angle and position",
               "Consistent natural lighting",
               "Clean, uncluttered space",
               "Shot during similar time of day"
-            ].map((item) => (
-              <li key={item} className="flex items-center gap-2 text-sm font-body text-muted-foreground">
-                <Check className="w-4 h-4 text-primary" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Testimonial Videos */}
-        <div className="bg-card rounded-2xl p-8 border border-border">
-          <h3 className="font-heading text-xl text-foreground mb-4">Testimonial Videos</h3>
-          <div className="aspect-[4/3] bg-gradient-to-br from-muted to-muted/50 rounded-xl mb-4 flex items-center justify-center">
-            <span className="text-muted-foreground/50 font-body">Example Video</span>
-          </div>
-          <ul className="space-y-2">
-            {[
-              "Natural, conversational tone",
-              "Shot in the completed space",
-              "Good audio quality",
-              "60-90 seconds optimal length"
             ].map((item) => (
               <li key={item} className="flex items-center gap-2 text-sm font-body text-muted-foreground">
                 <Check className="w-4 h-4 text-primary" />
