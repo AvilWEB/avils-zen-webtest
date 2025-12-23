@@ -1,4 +1,6 @@
-import { Check, X } from "lucide-react";
+import { Check, X, Play, Pause, Volume2, Music, ExternalLink } from "lucide-react";
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
 
 const voiceTraits = [
   {
@@ -28,6 +30,70 @@ const voiceTraits = [
   }
 ];
 
+interface AudioPlayerProps {
+  src: string;
+  title: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  externalLink?: string;
+}
+
+const AudioPlayer = ({ src, title, subtitle, icon, externalLink }: AudioPlayerProps) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+  };
+
+  return (
+    <div className="bg-card rounded-xl p-6 border border-border flex items-center gap-4">
+      <audio ref={audioRef} src={src} onEnded={handleEnded} />
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={togglePlay}
+        className="w-14 h-14 rounded-full border-2 border-primary bg-primary/5 hover:bg-primary/10 flex-shrink-0"
+      >
+        {isPlaying ? (
+          <Pause className="w-6 h-6 text-primary" />
+        ) : (
+          <Play className="w-6 h-6 text-primary ml-1" />
+        )}
+      </Button>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          {icon}
+          <h4 className="font-heading text-lg text-foreground truncate">{title}</h4>
+        </div>
+        <p className="text-muted-foreground font-body text-sm mt-1">{subtitle}</p>
+      </div>
+      {externalLink && (
+        <a
+          href={externalLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 text-primary hover:text-primary/80 text-sm font-body transition-colors"
+        >
+          <span className="hidden sm:inline">View on ElevenLabs</span>
+          <ExternalLink className="w-4 h-4" />
+        </a>
+      )}
+    </div>
+  );
+};
+
 const VoiceTone = () => {
   return (
     <div>
@@ -42,6 +108,26 @@ const VoiceTone = () => {
           Our voice is calm, professional, honest, warm, and confident but not loud. 
           We communicate with clarity and purpose, building trust through every interaction.
         </p>
+      </div>
+
+      {/* Audio Samples */}
+      <div className="mb-16">
+        <h3 className="font-heading text-2xl text-foreground mb-6">Brand Audio</h3>
+        <div className="grid md:grid-cols-2 gap-6">
+          <AudioPlayer
+            src="/audio/voice-flint.wav"
+            title="Flint — Commanding Presence"
+            subtitle="Brand voiceover by ElevenLabs"
+            icon={<Volume2 className="w-5 h-5 text-primary" />}
+            externalLink="https://elevenlabs.io/app/voice-library?voiceId=qAZH0aMXY8tw1QufPN0D"
+          />
+          <AudioPlayer
+            src="/audio/music-life-story.wav"
+            title="Life Story"
+            subtitle="Music by Aleh Ivanovich"
+            icon={<Music className="w-5 h-5 text-primary" />}
+          />
+        </div>
       </div>
 
       {/* Voice Traits */}
