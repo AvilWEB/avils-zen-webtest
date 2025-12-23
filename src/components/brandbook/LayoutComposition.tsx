@@ -1,4 +1,12 @@
+import { useState } from "react";
+import { Play } from "lucide-react";
+import beforeDave from "@/assets/before-AAA.jpg";
+import afterDave from "@/assets/after-AAA.jpg";
+import testimonialDaveCover from "@/assets/testimonial-dave-cover.jpg";
+
 const LayoutComposition = () => {
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+
   return (
     <div>
       <div className="mb-16">
@@ -64,48 +72,94 @@ const LayoutComposition = () => {
         <h3 className="font-heading text-2xl text-foreground mb-6">Before/After Framing</h3>
         <div className="bg-card rounded-2xl p-8 border border-border">
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="aspect-[4/3] bg-muted rounded-xl flex items-center justify-center border-2 border-dashed border-border">
-              <div className="text-center">
-                <span className="text-2xl font-heading text-foreground">BEFORE</span>
-                <p className="text-sm text-muted-foreground font-body mt-2">Same angle, consistent lighting</p>
-              </div>
+            <div className="relative">
+              <img 
+                src={beforeDave} 
+                alt="Dave's Bathroom - Before" 
+                className="w-full aspect-[4/3] object-cover rounded-xl"
+              />
+              <span className="absolute top-4 left-4 bg-foreground/80 text-background px-3 py-1 rounded-full text-sm font-body">
+                BEFORE
+              </span>
             </div>
-            <div className="aspect-[4/3] bg-primary/10 rounded-xl flex items-center justify-center border-2 border-primary/30">
-              <div className="text-center">
-                <span className="text-2xl font-heading text-foreground">AFTER</span>
-                <p className="text-sm text-muted-foreground font-body mt-2">Showcase transformation</p>
-              </div>
+            <div className="relative">
+              <img 
+                src={afterDave} 
+                alt="Dave's Bathroom - After" 
+                className="w-full aspect-[4/3] object-cover rounded-xl"
+              />
+              <span className="absolute top-4 left-4 bg-primary text-foreground px-3 py-1 rounded-full text-sm font-body">
+                AFTER
+              </span>
             </div>
           </div>
           <p className="text-muted-foreground font-body text-sm mt-6 text-center">
-            Side-by-side comparison with equal aspect ratios and consistent framing
+            Side-by-side comparison with equal aspect ratios and consistent framing — Dave's Bathroom Transformation
           </p>
         </div>
       </div>
 
       {/* Testimonial Layout */}
       <div className="mb-16">
-        <h3 className="font-heading text-2xl text-foreground mb-6">Testimonial Pattern</h3>
+        <h3 className="font-heading text-2xl text-foreground mb-6">Testimonial Video Pattern</h3>
         <div className="bg-card rounded-2xl p-8 border border-border">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="w-16 h-16 bg-primary/20 rounded-full mx-auto mb-6" />
-            <blockquote className="font-heading text-2xl text-foreground mb-4 italic">
-              "Quote text goes here — impactful and authentic"
-            </blockquote>
-            <cite className="font-body text-muted-foreground not-italic">
-              — Client Name, Location
-            </cite>
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="relative aspect-video rounded-xl overflow-hidden">
+              {isVideoPlaying ? (
+                <video
+                  src="/testimonial-dave.mp4"
+                  autoPlay
+                  controls
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <>
+                  <img 
+                    src={testimonialDaveCover} 
+                    alt="Dave's Testimonial" 
+                    className="w-full h-full object-cover"
+                  />
+                  <button 
+                    onClick={() => setIsVideoPlaying(true)}
+                    className="absolute inset-0 flex items-center justify-center bg-foreground/20 hover:bg-foreground/30 transition-colors"
+                  >
+                    <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
+                      <Play className="w-6 h-6 text-foreground fill-foreground ml-1" />
+                    </div>
+                  </button>
+                </>
+              )}
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-heading text-xl text-foreground">Video Testimonial</h4>
+              <blockquote className="font-body text-muted-foreground italic border-l-2 border-primary pl-4">
+                "Authentic client stories showcasing real transformations and genuine satisfaction."
+              </blockquote>
+              <ul className="space-y-2 text-muted-foreground font-body text-sm">
+                <li>• Custom thumbnail matching brand aesthetic</li>
+                <li>• Play button with brand primary color</li>
+                <li>• Rounded corners: xl (0.75rem)</li>
+                <li>• Overlay on hover for interaction feedback</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Video Placement */}
       <div>
-        <h3 className="font-heading text-2xl text-foreground mb-6">Video Placement</h3>
+        <h3 className="font-heading text-2xl text-foreground mb-6">Project Showcase Video</h3>
         <div className="bg-card rounded-2xl p-8 border border-border">
           <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="aspect-video bg-foreground/10 rounded-xl flex items-center justify-center">
-              <span className="text-foreground/40 font-heading">16:9 Video</span>
+            <div className="aspect-video rounded-xl overflow-hidden">
+              <video
+                src="/videos/bathroom-dave.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="space-y-4">
               <h4 className="font-heading text-xl text-foreground">Video Guidelines</h4>
@@ -114,6 +168,7 @@ const LayoutComposition = () => {
                 <li>• Auto-play muted with clear unmute control</li>
                 <li>• Rounded corners: lg (0.75rem) or 2xl (1rem)</li>
                 <li>• Custom thumbnails matching brand aesthetic</li>
+                <li>• Loop for ambient/showcase videos</li>
               </ul>
             </div>
           </div>
