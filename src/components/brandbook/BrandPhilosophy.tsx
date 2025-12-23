@@ -1,6 +1,5 @@
 const BrandPhilosophy = () => {
-  return (
-    <div>
+  return <div>
       <div className="mb-16">
         <span className="text-primary font-body text-sm tracking-widest uppercase">
           10 — Philosophy
@@ -13,11 +12,7 @@ const BrandPhilosophy = () => {
       {/* Manifesto */}
       <div className="bg-gradient-to-br from-foreground to-foreground/90 rounded-3xl p-8 md:p-16 mb-16">
         <div className="max-w-3xl mx-auto text-center">
-          <img 
-            src="/avils-logo.gif" 
-            alt="AVIL's Bathrooms" 
-            className="h-16 mx-auto mb-12 opacity-90"
-          />
+          <img src="/avils-logo.gif" alt="AVIL's Bathrooms" className="h-48 mx-auto mb-12 opacity-90" />
           
           <blockquote className="font-heading text-2xl md:text-4xl text-background leading-relaxed mb-8">
             "We don't just renovate bathrooms. We build relationships. 
@@ -84,8 +79,6 @@ const BrandPhilosophy = () => {
           <div className="h-px w-12 bg-border" />
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default BrandPhilosophy;
