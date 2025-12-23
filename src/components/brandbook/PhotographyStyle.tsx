@@ -1,4 +1,5 @@
-import { Check } from "lucide-react";
+import { useState } from "react";
+import { Check, X } from "lucide-react";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import beforeDave from "@/assets/before-AAA.jpg";
 import afterDave from "@/assets/after-AAA.jpg";
@@ -7,7 +8,15 @@ import framingMedium from "@/assets/framing-medium-key-features.jpg";
 import framingDetail from "@/assets/framing-detail-craftsmanship.jpg";
 import framingLifestyle from "@/assets/framing-lifestyle-in-use.jpg";
 
+const framingPhotos = [
+  { src: framingWide, label: "Wide", description: "Full Room" },
+  { src: framingMedium, label: "Medium", description: "Key Features" },
+  { src: framingDetail, label: "Detail", description: "Craftsmanship" },
+  { src: framingLifestyle, label: "Lifestyle", description: "In Use" },
+];
+
 const PhotographyStyle = () => {
+  const [selectedImage, setSelectedImage] = useState<{ src: string; label: string; description: string } | null>(null);
   return (
     <div>
       <div className="mb-16">
@@ -83,50 +92,23 @@ const PhotographyStyle = () => {
       <div className="mb-16">
         <h3 className="font-heading text-2xl text-foreground mb-6">Framing & Angles</h3>
         <div className="grid md:grid-cols-4 gap-4">
-          <div className="bg-card rounded-xl p-4 border border-border text-center">
-            <div className="aspect-square rounded-lg mb-3 overflow-hidden">
-              <img 
-                src={framingWide} 
-                alt="Wide shot - Full Room" 
-                className="w-full h-full object-cover"
-              />
+          {framingPhotos.map((photo) => (
+            <div 
+              key={photo.label}
+              className="bg-card rounded-xl p-4 border border-border text-center cursor-pointer group"
+              onClick={() => setSelectedImage(photo)}
+            >
+              <div className="aspect-square rounded-lg mb-3 overflow-hidden">
+                <img 
+                  src={photo.src} 
+                  alt={`${photo.label} shot - ${photo.description}`} 
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+              <span className="text-xs text-primary font-body uppercase tracking-wider">{photo.label}</span>
+              <p className="text-sm font-body text-foreground mt-1">{photo.description}</p>
             </div>
-            <span className="text-xs text-primary font-body uppercase tracking-wider">Wide</span>
-            <p className="text-sm font-body text-foreground mt-1">Full Room</p>
-          </div>
-          <div className="bg-card rounded-xl p-4 border border-border text-center">
-            <div className="aspect-square rounded-lg mb-3 overflow-hidden">
-              <img 
-                src={framingMedium} 
-                alt="Medium shot - Key Features" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <span className="text-xs text-primary font-body uppercase tracking-wider">Medium</span>
-            <p className="text-sm font-body text-foreground mt-1">Key Features</p>
-          </div>
-          <div className="bg-card rounded-xl p-4 border border-border text-center">
-            <div className="aspect-square rounded-lg mb-3 overflow-hidden">
-              <img 
-                src={framingDetail} 
-                alt="Detail shot - Craftsmanship" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <span className="text-xs text-primary font-body uppercase tracking-wider">Detail</span>
-            <p className="text-sm font-body text-foreground mt-1">Craftsmanship</p>
-          </div>
-          <div className="bg-card rounded-xl p-4 border border-border text-center">
-            <div className="aspect-square rounded-lg mb-3 overflow-hidden">
-              <img 
-                src={framingLifestyle} 
-                alt="Lifestyle shot - In Use" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <span className="text-xs text-primary font-body uppercase tracking-wider">Lifestyle</span>
-            <p className="text-sm font-body text-foreground mt-1">In Use</p>
-          </div>
+          ))}
         </div>
       </div>
 
@@ -149,6 +131,41 @@ const PhotographyStyle = () => {
           ))}
         </div>
       </div>
+
+      {/* Lightbox Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
+          
+          {/* Close Button */}
+          <button 
+            className="absolute top-6 right-6 z-10 w-12 h-12 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-border hover:bg-card transition-colors"
+            onClick={() => setSelectedImage(null)}
+          >
+            <X className="w-6 h-6 text-foreground" />
+          </button>
+          
+          {/* Image Container */}
+          <div 
+            className="relative z-10 max-w-5xl max-h-[85vh] w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img 
+              src={selectedImage.src} 
+              alt={`${selectedImage.label} - ${selectedImage.description}`} 
+              className="w-full h-full object-contain rounded-lg"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background/90 to-transparent p-6 rounded-b-lg">
+              <span className="text-xs text-primary font-body uppercase tracking-wider">{selectedImage.label}</span>
+              <p className="text-lg font-heading text-foreground mt-1">{selectedImage.description}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
