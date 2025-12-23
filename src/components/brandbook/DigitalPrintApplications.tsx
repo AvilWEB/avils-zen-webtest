@@ -1,3 +1,6 @@
+import businessCardDark from "@/assets/business-card-dark.png";
+import businessCardLight from "@/assets/business-card-light.png";
+
 const DigitalPrintApplications = () => {
   return (
     <div>
@@ -49,25 +52,16 @@ const DigitalPrintApplications = () => {
       <div className="mb-16">
         <h3 className="font-heading text-2xl text-foreground mb-6">Business Cards</h3>
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Front */}
-          <div className="bg-foreground rounded-2xl p-8 aspect-[1.75/1] flex flex-col justify-between">
-            <img src="/avils-logo.gif" alt="Logo" className="h-8" />
-            <div>
-              <p className="text-background font-heading text-lg">Avil's Bathrooms</p>
-              <p className="text-background/60 font-body text-sm">Premium Bathroom Renovations</p>
-            </div>
-          </div>
-          {/* Back */}
-          <div className="bg-background rounded-2xl p-8 aspect-[1.75/1] flex flex-col justify-between border border-border">
-            <div>
-              <p className="font-heading text-lg text-foreground">Contact Information</p>
-            </div>
-            <div className="space-y-1 font-body text-sm text-muted-foreground">
-              <p>email@avilsbathrooms.com</p>
-              <p>(123) 456-7890</p>
-              <p>Connecticut, USA</p>
-            </div>
-          </div>
+          <img 
+            src={businessCardDark} 
+            alt="Avil's Bathrooms Business Card - Dark Version" 
+            className="w-full rounded-2xl shadow-lg"
+          />
+          <img 
+            src={businessCardLight} 
+            alt="Avil's Bathrooms Business Card - Light Version" 
+            className="w-full rounded-2xl shadow-lg"
+          />
         </div>
       </div>
 
