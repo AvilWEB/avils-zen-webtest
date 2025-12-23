@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { Helmet } from "react-helmet";
 import BrandBookHero from "@/components/brandbook/BrandBookHero";
 import BrandBookNav from "@/components/brandbook/BrandBookNav";
 import BrandEssence from "@/components/brandbook/BrandEssence";
@@ -13,6 +14,9 @@ import LayoutComposition from "@/components/brandbook/LayoutComposition";
 import PhotographyStyle from "@/components/brandbook/PhotographyStyle";
 import DigitalPrintApplications from "@/components/brandbook/DigitalPrintApplications";
 import BrandPhilosophy from "@/components/brandbook/BrandPhilosophy";
+import DesignTokens from "@/components/brandbook/DesignTokens";
+import ComponentTemplates from "@/components/brandbook/ComponentTemplates";
+import CopyMessaging from "@/components/brandbook/CopyMessaging";
 
 const sections = [
   { id: "essence", label: "Brand Essence" },
@@ -25,7 +29,69 @@ const sections = [
   { id: "photography", label: "Photography" },
   { id: "applications", label: "Applications" },
   { id: "philosophy", label: "Philosophy" },
+  { id: "tokens", label: "Design Tokens" },
+  { id: "templates", label: "Templates" },
+  { id: "copy", label: "Copy & Messaging" },
 ];
+
+// JSON-LD structured data for AI and search engines
+const brandJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "AVIL's Bathrooms",
+  "description": "Premium bathroom remodeling services in Houston, Texas. Crafting luxury bathroom transformations with quality craftsmanship.",
+  "url": "https://avilsbathrooms.com",
+  "logo": "https://avilsbathrooms.com/logos/logo-gold.png",
+  "brand": {
+    "@type": "Brand",
+    "name": "AVIL's Bathrooms",
+    "slogan": "Crafting Your Perfect Sanctuary",
+    "description": "Luxury bathroom remodeling"
+  },
+  "sameAs": [],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer service",
+    "availableLanguage": ["English"]
+  },
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "primaryColor",
+      "value": "#8AAB1C"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "secondaryColor",
+      "value": "#7F909A"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "accentColor",
+      "value": "#FFD700"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "backgroundColor",
+      "value": "#E8E3D7"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "headingFont",
+      "value": "Cotta"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "bodyFont",
+      "value": "Helvetica"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "logoFont",
+      "value": "Berova"
+    }
+  ]
+};
 
 const BrandBook = () => {
   const [activeSection, setActiveSection] = useState("essence");
@@ -61,6 +127,15 @@ const BrandBook = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Brand Book | AVIL's Bathrooms - Complete Brand Guidelines</title>
+        <meta name="description" content="Complete brand guidelines for AVIL's Bathrooms. Includes logo usage, color palette, typography, design tokens, templates, and messaging guidelines for consistent brand implementation." />
+        <meta name="keywords" content="AVIL's Bathrooms, brand guidelines, brand book, design system, logo, colors, typography, templates" />
+        <script type="application/ld+json">
+          {JSON.stringify(brandJsonLd)}
+        </script>
+      </Helmet>
+
       <div className="relative">
         <BrandBookHero />
       </div>
@@ -112,6 +187,18 @@ const BrandBook = () => {
             
             <section id="philosophy" className="scroll-mt-24 mt-32">
               <BrandPhilosophy />
+            </section>
+
+            <section id="tokens" className="scroll-mt-24 mt-32">
+              <DesignTokens />
+            </section>
+
+            <section id="templates" className="scroll-mt-24 mt-32">
+              <ComponentTemplates />
+            </section>
+
+            <section id="copy" className="scroll-mt-24 mt-32">
+              <CopyMessaging />
             </section>
             
             {/* Back to Website Button */}
