@@ -164,7 +164,7 @@ const LayoutComposition = () => {
             <div className="space-y-4">
               <h4 className="font-heading text-xl text-foreground">Video Guidelines</h4>
               <ul className="space-y-2 text-muted-foreground font-body text-sm">
-                <li>• Aspect ratio: 16:9 for hero, 1:1 for testimonials</li>
+                <li>• Aspect ratio: 16:9 for hero and 1:1 for testimonials</li>
                 <li>• Auto-play muted with clear unmute control</li>
                 <li>• Rounded corners: lg (0.75rem) or 2xl (1rem)</li>
                 <li>• Custom thumbnails matching brand aesthetic</li>
