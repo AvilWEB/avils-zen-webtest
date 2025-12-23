@@ -54,7 +54,7 @@ const Hero = ({
           onWaiting={handleWaiting}
           className="w-full h-full object-contain"
         >
-          <source src="/baner-video.mp4" type="video/mp4" />
+          <source src="/baner-video-main.mp4" type="video/mp4" />
         </video>
       </div>
 
