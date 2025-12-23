@@ -1,6 +1,6 @@
 import businessCardDark from "@/assets/business-card-dark.png";
 import businessCardLight from "@/assets/business-card-light.png";
-
+import estimatePreview from "@/assets/estimate-template-preview.jpg";
 const DigitalPrintApplications = () => {
   return (
     <div>
@@ -102,28 +102,39 @@ const DigitalPrintApplications = () => {
       {/* Invoice/Estimate */}
       <div>
         <h3 className="font-heading text-2xl text-foreground mb-6">Documents</h3>
-        <div className="bg-card rounded-2xl p-8 border border-border">
-          <div className="bg-background rounded-xl p-6 border border-border max-w-md">
-            <div className="flex items-start justify-between mb-8">
-              <img src="/avils-logo.gif" alt="Logo" className="h-8" />
-              <div className="text-right">
-                <p className="font-heading text-foreground">ESTIMATE</p>
-                <p className="text-xs text-muted-foreground font-body">#EST-2024-001</p>
-              </div>
-            </div>
-            <div className="space-y-4 mb-8">
-              <div className="h-3 bg-muted rounded w-3/4" />
-              <div className="h-3 bg-muted rounded w-1/2" />
-              <div className="h-3 bg-muted rounded w-2/3" />
-            </div>
-            <div className="pt-4 border-t border-border flex justify-between">
-              <span className="font-body text-muted-foreground text-sm">Total</span>
-              <span className="font-heading text-foreground">$X,XXX.XX</span>
-            </div>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="bg-card rounded-2xl p-6 border border-border">
+            <img 
+              src={estimatePreview} 
+              alt="AVIL's Bathrooms Estimate Template" 
+              className="w-full rounded-xl shadow-lg"
+            />
           </div>
-          <p className="text-muted-foreground font-body text-sm mt-4">
-            Clean layout, prominent logo, consistent typography
-          </p>
+          <div className="flex flex-col justify-center">
+            <h4 className="font-heading text-xl text-foreground mb-4">Project Estimate</h4>
+            <p className="text-muted-foreground font-body leading-relaxed mb-6">
+              Professional estimate documents feature the brand's signature gold logo, 
+              clean table layouts for cost breakdowns, and consistent typography throughout.
+            </p>
+            <ul className="space-y-3 text-sm text-muted-foreground font-body">
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full" />
+                Clean layout with prominent logo placement
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full" />
+                Organized cost breakdown tables
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full" />
+                Consistent brand typography
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full" />
+                Professional contact information footer
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
