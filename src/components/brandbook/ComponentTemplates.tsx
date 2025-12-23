@@ -160,9 +160,8 @@ const ComponentTemplates = () => {
       <div className="mb-16">
         <h3 className="font-heading text-2xl text-foreground mb-6">Email Header</h3>
         <div className="max-w-2xl mx-auto">
-          <div className="bg-zinc-900 rounded-t-2xl p-8 text-center">
-            <p className="font-logo text-3xl text-accent">AVIL's</p>
-            <p className="font-heading text-sm text-zinc-400 tracking-[0.3em] mt-1">BATHROOMS</p>
+          <div className="bg-zinc-900 rounded-t-2xl p-8 flex justify-center">
+            <img src="/avils-logo.gif" alt="AVIL's Bathrooms Logo" className="h-16 w-auto" />
           </div>
           <div className="bg-card rounded-b-2xl p-6 border border-t-0 border-border">
             <p className="font-heading text-xl text-foreground text-center">Your Estimate is Ready</p>
