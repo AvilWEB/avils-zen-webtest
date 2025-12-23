@@ -11,19 +11,14 @@ const BrandBookHero = () => {
         loop
         muted={isMuted}
         playsInline
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-contain bg-foreground"
       >
         <source src="/baner-video.mp4" type="video/mp4" />
       </video>
       
-      <div className="absolute inset-0 bg-gradient-to-b from-foreground/60 via-foreground/40 to-foreground/80" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-foreground/60" />
       
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
-        <img 
-          src="/avils-logo.gif" 
-          alt="AVIL's Bathrooms" 
-          className="h-24 md:h-32 mb-8"
-        />
+      <div className="relative z-10 flex flex-col items-center justify-end h-full text-center px-6 pb-32">
         
         <h1 className="font-logo text-4xl md:text-6xl lg:text-7xl text-background tracking-wide mb-6">
           Brand Book
