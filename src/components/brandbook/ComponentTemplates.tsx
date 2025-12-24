@@ -1,3 +1,6 @@
+import { Download } from 'lucide-react';
+import giftCardPreview from '@/assets/gift-card-template-preview.jpg';
+
 const ComponentTemplates = () => {
   return (
     <div>
@@ -17,32 +20,27 @@ const ComponentTemplates = () => {
       {/* Gift Card Template */}
       <div className="mb-16">
         <h3 className="font-heading text-2xl text-foreground mb-6">Gift Card</h3>
-        <div className="max-w-md mx-auto">
-          <div className="relative bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl p-8 aspect-[1.6/1] flex flex-col justify-between overflow-hidden">
-            {/* Gold accent line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent to-transparent" />
-            
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="font-logo text-2xl text-accent">AVIL's</p>
-                <p className="font-heading text-sm text-zinc-400 tracking-widest">BATHROOMS</p>
-              </div>
-              <p className="font-body text-xs text-zinc-500 uppercase tracking-wider">Gift Card</p>
-            </div>
-            
-            <div className="text-center">
-              <p className="font-heading text-4xl text-white">$250</p>
-              <p className="font-body text-sm text-zinc-400 mt-1">Towards your dream bathroom</p>
-            </div>
-            
-            <div className="flex justify-between items-end">
-              <p className="font-body text-xs text-zinc-500">Card #: XXXX-XXXX-XXXX</p>
-              <p className="font-body text-xs text-zinc-500">Valid for 2 years</p>
-            </div>
+        <div className="max-w-2xl mx-auto">
+          <div className="rounded-2xl overflow-hidden shadow-lg">
+            <img 
+              src={giftCardPreview} 
+              alt="AVIL's Bathrooms Gift Card Template Preview" 
+              className="w-full h-auto"
+            />
           </div>
           <p className="text-center text-sm text-muted-foreground font-body mt-4">
-            Aspect ratio: 1.6:1 (standard credit card) • Dark background with gold accents
+            Aspect ratio: 16:9 • Light natural background with gold accent
           </p>
+          <div className="flex justify-center mt-4">
+            <a 
+              href="https://github.com/AvilWEB/avils-zen-webtest/releases/download/TampatePSD/Gift.Card.Tamplate.psd"
+              download
+              className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-body text-sm hover:bg-primary/90 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Download PSD Template
+            </a>
+          </div>
         </div>
       </div>
 
