@@ -17,31 +17,38 @@ const ComponentTemplates = () => {
       {/* Gift Card Template */}
       <div className="mb-16">
         <h3 className="font-heading text-2xl text-foreground mb-6">Gift Card</h3>
-        <div className="max-w-md mx-auto">
-          <div className="relative bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl p-8 aspect-[1.6/1] flex flex-col justify-between overflow-hidden">
-            {/* Gold accent line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent to-transparent" />
+        <div className="max-w-lg mx-auto">
+          <div className="relative bg-zinc-950 rounded-lg aspect-[1.6/1] flex flex-col items-center justify-center overflow-hidden p-6">
+            {/* Elegant gold border frame */}
+            <div className="absolute inset-4 border border-accent/60 rounded pointer-events-none" />
+            <div className="absolute inset-5 border border-accent/30 rounded pointer-events-none" />
             
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="font-logo text-2xl text-accent">AVIL's</p>
-                <p className="font-heading text-sm text-zinc-400 tracking-widest">BATHROOMS</p>
+            {/* Corner accents */}
+            <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-accent" />
+            <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-accent" />
+            <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-accent" />
+            <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-accent" />
+            
+            {/* Content */}
+            <div className="relative z-10 text-center space-y-3">
+              <p className="font-logo text-3xl md:text-4xl text-accent tracking-wide">AVIL's</p>
+              <p className="font-heading text-sm md:text-base text-zinc-300 tracking-[0.3em] uppercase">Bathrooms</p>
+              
+              <div className="py-4">
+                <div className="w-16 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto mb-4" />
+                <p className="font-heading text-lg text-zinc-400 tracking-widest uppercase">Gift Card</p>
+                <div className="w-16 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto mt-4" />
               </div>
-              <p className="font-body text-xs text-zinc-500 uppercase tracking-wider">Gift Card</p>
-            </div>
-            
-            <div className="text-center">
-              <p className="font-heading text-4xl text-white">$250</p>
-              <p className="font-body text-sm text-zinc-400 mt-1">Towards your dream bathroom</p>
-            </div>
-            
-            <div className="flex justify-between items-end">
-              <p className="font-body text-xs text-zinc-500">Card #: XXXX-XXXX-XXXX</p>
-              <p className="font-body text-xs text-zinc-500">Valid for 2 years</p>
+              
+              <p className="font-heading text-4xl md:text-5xl text-white tracking-wide">$250</p>
+              
+              <p className="font-body text-xs text-zinc-500 tracking-wider pt-2">
+                avilsbathrooms.com
+              </p>
             </div>
           </div>
           <p className="text-center text-sm text-muted-foreground font-body mt-4">
-            Aspect ratio: 1.6:1 (standard credit card) • Dark background with gold accents
+            Aspect ratio: 1.6:1 • Dark background with elegant gold frame and corner accents
           </p>
         </div>
       </div>
