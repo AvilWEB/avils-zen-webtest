@@ -17,22 +17,46 @@ import BrandPhilosophy from "@/components/brandbook/BrandPhilosophy";
 import DesignTokens from "@/components/brandbook/DesignTokens";
 import ComponentTemplates from "@/components/brandbook/ComponentTemplates";
 import CopyMessaging from "@/components/brandbook/CopyMessaging";
-
-const sections = [
-  { id: "essence", label: "Brand Essence" },
-  { id: "logo", label: "Logo Usage" },
-  { id: "colors", label: "Color System" },
-  { id: "typography", label: "Typography" },
-  { id: "voice", label: "Voice & Tone" },
-  { id: "ui", label: "UI Elements" },
-  { id: "layout", label: "Layout" },
-  { id: "photography", label: "Photography" },
-  { id: "applications", label: "Applications" },
-  { id: "philosophy", label: "Philosophy" },
-  { id: "tokens", label: "Design Tokens" },
-  { id: "templates", label: "Templates" },
-  { id: "copy", label: "Copy & Messaging" },
-];
+const sections = [{
+  id: "essence",
+  label: "Brand Essence"
+}, {
+  id: "logo",
+  label: "Logo Usage"
+}, {
+  id: "colors",
+  label: "Color System"
+}, {
+  id: "typography",
+  label: "Typography"
+}, {
+  id: "voice",
+  label: "Voice & Tone"
+}, {
+  id: "ui",
+  label: "UI Elements"
+}, {
+  id: "layout",
+  label: "Layout"
+}, {
+  id: "photography",
+  label: "Photography"
+}, {
+  id: "applications",
+  label: "Applications"
+}, {
+  id: "philosophy",
+  label: "Philosophy"
+}, {
+  id: "tokens",
+  label: "Design Tokens"
+}, {
+  id: "templates",
+  label: "Templates"
+}, {
+  id: "copy",
+  label: "Copy & Messaging"
+}];
 
 // JSON-LD structured data for AI and search engines
 const brandJsonLd = {
@@ -54,55 +78,44 @@ const brandJsonLd = {
     "contactType": "customer service",
     "availableLanguage": ["English"]
   },
-  "additionalProperty": [
-    {
-      "@type": "PropertyValue",
-      "name": "primaryColor",
-      "value": "#8AAB1C"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "secondaryColor",
-      "value": "#7F909A"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "accentColor",
-      "value": "#FFD700"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "backgroundColor",
-      "value": "#E8E3D7"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "headingFont",
-      "value": "Cotta"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "bodyFont",
-      "value": "Helvetica"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "logoFont",
-      "value": "Berova"
-    }
-  ]
+  "additionalProperty": [{
+    "@type": "PropertyValue",
+    "name": "primaryColor",
+    "value": "#8AAB1C"
+  }, {
+    "@type": "PropertyValue",
+    "name": "secondaryColor",
+    "value": "#7F909A"
+  }, {
+    "@type": "PropertyValue",
+    "name": "accentColor",
+    "value": "#FFD700"
+  }, {
+    "@type": "PropertyValue",
+    "name": "backgroundColor",
+    "value": "#E8E3D7"
+  }, {
+    "@type": "PropertyValue",
+    "name": "headingFont",
+    "value": "Cotta"
+  }, {
+    "@type": "PropertyValue",
+    "name": "bodyFont",
+    "value": "Helvetica"
+  }, {
+    "@type": "PropertyValue",
+    "name": "logoFont",
+    "value": "Berova"
+  }]
 };
-
 const BrandBook = () => {
   const [activeSection, setActiveSection] = useState("essence");
-
   useEffect(() => {
     const handleScroll = () => {
       const sectionElements = sections.map(s => ({
         id: s.id,
         element: document.getElementById(s.id)
       }));
-
       for (const section of sectionElements) {
         if (section.element) {
           const rect = section.element.getBoundingClientRect();
@@ -113,20 +126,19 @@ const BrandBook = () => {
         }
       }
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
     }
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Helmet>
         <title>Brand Book | AVIL's Bathrooms - Complete Brand Guidelines</title>
         <meta name="description" content="Complete brand guidelines for AVIL's Bathrooms. Includes logo usage, color palette, typography, design tokens, templates, and messaging guidelines for consistent brand implementation." />
@@ -141,11 +153,7 @@ const BrandBook = () => {
       </div>
       
       <div className="flex">
-        <BrandBookNav 
-          sections={sections} 
-          activeSection={activeSection} 
-          onSectionClick={scrollToSection} 
-        />
+        <BrandBookNav sections={sections} activeSection={activeSection} onSectionClick={scrollToSection} />
         
         <main className="flex-1 lg:ml-64">
           <div className="max-w-5xl mx-auto px-6 md:px-12 py-20">
@@ -198,15 +206,12 @@ const BrandBook = () => {
             </section>
 
             <section id="copy" className="scroll-mt-24 mt-32">
-              <CopyMessaging />
+              
             </section>
             
             {/* Back to Website Button */}
             <div className="mt-32 pb-32 text-center">
-              <Link 
-                to="/"
-                className="inline-flex items-center gap-3 bg-primary text-primary-foreground px-8 py-4 rounded-full font-body text-lg hover:bg-primary/90 transition-colors group"
-              >
+              <Link to="/" className="inline-flex items-center gap-3 bg-primary text-primary-foreground px-8 py-4 rounded-full font-body text-lg hover:bg-primary/90 transition-colors group">
                 Visit Main Website
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </Link>
@@ -214,8 +219,6 @@ const BrandBook = () => {
           </div>
         </main>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default BrandBook;

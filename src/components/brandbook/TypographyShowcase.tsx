@@ -1,6 +1,5 @@
 const TypographyShowcase = () => {
-  return (
-    <div>
+  return <div>
       <div className="mb-16">
         <span className="text-primary font-body text-sm tracking-widest uppercase">
           04 — Typography
@@ -110,44 +109,7 @@ const TypographyShowcase = () => {
       </div>
 
       {/* Line Height & Spacing */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-card rounded-xl p-6 border border-border">
-          <h4 className="font-heading text-lg text-foreground mb-4">Line Height</h4>
-          <div className="space-y-4">
-            <div>
-              <span className="text-xs text-primary font-body">Headings: 1.2</span>
-              <p className="font-heading text-xl leading-tight text-foreground mt-1">
-                Tight line height for impact
-              </p>
-            </div>
-            <div>
-              <span className="text-xs text-primary font-body">Body: 1.6</span>
-              <p className="font-body text-base leading-relaxed text-foreground mt-1">
-                Relaxed line height for comfortable reading in longer passages of text.
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-card rounded-xl p-6 border border-border">
-          <h4 className="font-heading text-lg text-foreground mb-4">Letter Spacing</h4>
-          <div className="space-y-4">
-            <div>
-              <span className="text-xs text-primary font-body">Labels: 0.1em</span>
-              <p className="font-body text-sm tracking-widest uppercase text-foreground mt-1">
-                UPPERCASE LABELS
-              </p>
-            </div>
-            <div>
-              <span className="text-xs text-primary font-body">Body: Normal</span>
-              <p className="font-body text-base text-foreground mt-1">
-                Standard tracking for body text
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+      
+    </div>;
 };
-
 export default TypographyShowcase;

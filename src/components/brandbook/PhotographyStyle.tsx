@@ -7,18 +7,30 @@ import framingWide from "@/assets/framing-wide-full-room.jpg";
 import framingMedium from "@/assets/framing-medium-key-features.jpg";
 import framingDetail from "@/assets/framing-detail-craftsmanship.jpg";
 import framingLifestyle from "@/assets/framing-lifestyle-in-use.jpg";
-
-const framingPhotos = [
-  { src: framingWide, label: "Wide", description: "Full Room" },
-  { src: framingMedium, label: "Medium", description: "Key Features" },
-  { src: framingDetail, label: "Detail", description: "Craftsmanship" },
-  { src: framingLifestyle, label: "Lifestyle", description: "In Use" },
-];
-
+const framingPhotos = [{
+  src: framingWide,
+  label: "Wide",
+  description: "Full Room"
+}, {
+  src: framingMedium,
+  label: "Medium",
+  description: "Key Features"
+}, {
+  src: framingDetail,
+  label: "Detail",
+  description: "Craftsmanship"
+}, {
+  src: framingLifestyle,
+  label: "Lifestyle",
+  description: "In Use"
+}];
 const PhotographyStyle = () => {
-  const [selectedImage, setSelectedImage] = useState<{ src: string; label: string; description: string } | null>(null);
-  return (
-    <div>
+  const [selectedImage, setSelectedImage] = useState<{
+    src: string;
+    label: string;
+    description: string;
+  } | null>(null);
+  return <div>
       <div className="mb-16">
         <span className="text-primary font-body text-sm tracking-widest uppercase">
           08 — Photography & Video
@@ -37,29 +49,16 @@ const PhotographyStyle = () => {
         <div className="bg-card rounded-2xl p-8 border border-border">
           <h3 className="font-heading text-xl text-foreground mb-6">Before / After Shots</h3>
           <div className="max-w-3xl mx-auto mb-6">
-            <BeforeAfterSlider
-              beforeImage={beforeDave}
-              afterImage={afterDave}
-              beforeAlt="Dave's Bathroom - Before"
-              afterAlt="Dave's Bathroom - After"
-              aspectRatio="4/3"
-            />
+            <BeforeAfterSlider beforeImage={beforeDave} afterImage={afterDave} beforeAlt="Dave's Bathroom - Before" afterAlt="Dave's Bathroom - After" aspectRatio="4/3" />
           </div>
           <p className="text-center text-sm text-muted-foreground font-body mb-6">
             Dave's Bathroom Transformation — Drag the slider to compare
           </p>
           <ul className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-            {[
-              "Same camera angle and position",
-              "Consistent natural lighting",
-              "Clean, uncluttered space",
-              "Shot during similar time of day"
-            ].map((item) => (
-              <li key={item} className="flex items-center gap-2 text-sm font-body text-muted-foreground">
+            {["Same camera angle and position", "Consistent natural lighting", "Clean, uncluttered space", "Shot during similar time of day"].map(item => <li key={item} className="flex items-center gap-2 text-sm font-body text-muted-foreground">
                 <Check className="w-4 h-4 text-primary" />
                 {item}
-              </li>
-            ))}
+              </li>)}
           </ul>
         </div>
       </div>
@@ -92,23 +91,7 @@ const PhotographyStyle = () => {
       <div className="mb-16">
         <h3 className="font-heading text-2xl text-foreground mb-6">Framing & Angles</h3>
         <div className="grid md:grid-cols-4 gap-4">
-          {framingPhotos.map((photo) => (
-            <div 
-              key={photo.label}
-              className="bg-card rounded-xl p-4 border border-border text-center cursor-pointer group"
-              onClick={() => setSelectedImage(photo)}
-            >
-              <div className="aspect-square rounded-lg mb-3 overflow-hidden">
-                <img 
-                  src={photo.src} 
-                  alt={`${photo.label} shot - ${photo.description}`} 
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
-              <span className="text-xs text-primary font-body uppercase tracking-wider">{photo.label}</span>
-              <p className="text-sm font-body text-foreground mt-1">{photo.description}</p>
-            </div>
-          ))}
+          {framingPhotos.map(photo => {})}
         </div>
       </div>
 
@@ -116,58 +99,32 @@ const PhotographyStyle = () => {
       <div className="bg-destructive/5 rounded-2xl p-8 border border-destructive/10">
         <h3 className="font-heading text-xl text-foreground mb-4">What to Avoid</h3>
         <div className="grid md:grid-cols-2 gap-4">
-          {[
-            "Stock photography feeling",
-            "Over-processed HDR effects",
-            "Cluttered or messy spaces",
-            "Poor lighting or harsh shadows",
-            "Inconsistent color temperature",
-            "Logos or branding in frame"
-          ].map((item) => (
-            <div key={item} className="flex items-center gap-3 text-sm font-body text-muted-foreground">
+          {["Stock photography feeling", "Over-processed HDR effects", "Cluttered or messy spaces", "Poor lighting or harsh shadows", "Inconsistent color temperature", "Logos or branding in frame"].map(item => <div key={item} className="flex items-center gap-3 text-sm font-body text-muted-foreground">
               <span className="w-2 h-2 bg-destructive rounded-full" />
               {item}
-            </div>
-          ))}
+            </div>)}
         </div>
       </div>
 
       {/* Lightbox Modal */}
-      {selectedImage && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedImage(null)}
-        >
+      {selectedImage && <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
           {/* Backdrop */}
           <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
           
           {/* Close Button */}
-          <button 
-            className="absolute top-6 right-6 z-10 w-12 h-12 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-border hover:bg-card transition-colors"
-            onClick={() => setSelectedImage(null)}
-          >
+          <button className="absolute top-6 right-6 z-10 w-12 h-12 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-border hover:bg-card transition-colors" onClick={() => setSelectedImage(null)}>
             <X className="w-6 h-6 text-foreground" />
           </button>
           
           {/* Image Container */}
-          <div 
-            className="relative z-10 max-w-5xl max-h-[85vh] w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img 
-              src={selectedImage.src} 
-              alt={`${selectedImage.label} - ${selectedImage.description}`} 
-              className="w-full h-full object-contain rounded-lg"
-            />
+          <div className="relative z-10 max-w-5xl max-h-[85vh] w-full" onClick={e => e.stopPropagation()}>
+            <img src={selectedImage.src} alt={`${selectedImage.label} - ${selectedImage.description}`} className="w-full h-full object-contain rounded-lg" />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background/90 to-transparent p-6 rounded-b-lg">
               <span className="text-xs text-primary font-body uppercase tracking-wider">{selectedImage.label}</span>
               <p className="text-lg font-heading text-foreground mt-1">{selectedImage.description}</p>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 };
-
 export default PhotographyStyle;

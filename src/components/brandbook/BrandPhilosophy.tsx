@@ -75,7 +75,7 @@ const BrandPhilosophy = () => {
         </p>
         <div className="flex items-center justify-center gap-4">
           <div className="h-px w-12 bg-border" />
-          <img src="/avils-logo.gif" alt="AVIL's" className="h-8 opacity-60" />
+          <img alt="AVIL's" className="h-8 opacity-100" src="/lovable-uploads/c1f7f8d3-9dc7-4d5b-88ec-5e4fa6d057bf.png" />
           <div className="h-px w-12 bg-border" />
         </div>
       </div>
