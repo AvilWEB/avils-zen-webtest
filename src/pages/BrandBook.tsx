@@ -152,10 +152,8 @@ const BrandBook = () => {
         <BrandBookHero />
       </div>
       
-      <div className="flex">
-        <BrandBookNav sections={sections} activeSection={activeSection} onSectionClick={scrollToSection} />
-        
-        <main className="flex-1 lg:ml-64">
+      <div>
+        <main className="flex-1">
           <div className="max-w-5xl mx-auto px-6 md:px-12 py-20">
             <section id="essence" className="scroll-mt-24">
               <BrandEssence />

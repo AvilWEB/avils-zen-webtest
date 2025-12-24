@@ -91,7 +91,19 @@ const PhotographyStyle = () => {
       <div className="mb-16">
         <h3 className="font-heading text-2xl text-foreground mb-6">Framing & Angles</h3>
         <div className="grid md:grid-cols-4 gap-4">
-          {framingPhotos.map(photo => {})}
+          {framingPhotos.map(photo => (
+            <div key={photo.label} className="relative group cursor-pointer" onClick={() => setSelectedImage(photo)}>
+              <img 
+                src={photo.src} 
+                alt={photo.label} 
+                className="w-full h-48 object-cover rounded-lg"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-lg">
+                <p className="text-white font-body text-sm font-medium">{photo.label}</p>
+                <p className="text-white/70 font-body text-xs">{photo.description}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
