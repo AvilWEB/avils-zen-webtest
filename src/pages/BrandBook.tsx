@@ -42,8 +42,8 @@ const sections = [{
   id: "photography",
   label: "Photography"
 }, {
-  id: "applications",
-  label: "Applications"
+  id: "templates",
+  label: "Component Templates"
 }, {
   id: "philosophy",
   label: "Philosophy"
@@ -51,11 +51,8 @@ const sections = [{
   id: "tokens",
   label: "Design Tokens"
 }, {
-  id: "templates",
-  label: "Templates"
-}, {
-  id: "copy",
-  label: "Copy & Messaging"
+  id: "applications",
+  label: "Applications"
 }];
 
 // JSON-LD structured data for AI and search engines
@@ -187,8 +184,8 @@ const BrandBook = () => {
               <PhotographyStyle />
             </section>
             
-            <section id="applications" className="scroll-mt-24 mt-32">
-              <DigitalPrintApplications />
+            <section id="templates" className="scroll-mt-24 mt-32">
+              <ComponentTemplates />
             </section>
             
             <section id="philosophy" className="scroll-mt-24 mt-32">
@@ -199,12 +196,8 @@ const BrandBook = () => {
               <DesignTokens />
             </section>
 
-            <section id="templates" className="scroll-mt-24 mt-32">
-              <ComponentTemplates />
-            </section>
-
-            <section id="copy" className="scroll-mt-24 mt-32">
-              
+            <section id="applications" className="scroll-mt-24 mt-32">
+              <DigitalPrintApplications />
             </section>
             
             {/* Back to Website Button */}
