@@ -5,7 +5,17 @@ const BrandBookHero = () => {
   const [isMuted, setIsMuted] = useState(true);
 
   return (
-    <section className="relative h-screen w-screen overflow-hidden">
+    <section className="relative h-screen w-screen overflow-hidden flex flex-col">
+      {/* Top text - visible on mobile to fill empty space */}
+      <div className="md:hidden absolute top-8 left-0 right-0 z-10 text-center px-6">
+        <span className="text-primary/60 font-body text-xs tracking-[0.3em] uppercase">
+          AVIL's Bathrooms
+        </span>
+        <h1 className="font-heading text-lg text-foreground/80 mt-2">
+          Brand Guidelines
+        </h1>
+      </div>
+      
       <video
         autoPlay
         loop
@@ -16,6 +26,12 @@ const BrandBookHero = () => {
         <source src="/baner-video-brandbook.mp4" type="video/mp4" />
       </video>
       
+      {/* Bottom text - visible on mobile to fill empty space */}
+      <div className="md:hidden absolute bottom-24 left-0 right-0 z-10 text-center px-6">
+        <p className="text-muted-foreground/70 font-body text-xs leading-relaxed">
+          Scroll down to explore our complete brand identity system
+        </p>
+      </div>
       
       <button
         onClick={() => setIsMuted(!isMuted)}
