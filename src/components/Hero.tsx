@@ -37,6 +37,16 @@ const Hero = ({
   };
 
   return <section className="relative h-screen w-full overflow-hidden bg-background">
+      {/* Top text - visible on mobile to fill empty space */}
+      <div className="md:hidden absolute top-8 left-0 right-0 z-20 text-center px-6">
+        <span className="text-primary/60 font-body text-xs tracking-[0.3em] uppercase">
+          Why Avil's Bathrooms
+        </span>
+        <p className="font-heading text-lg text-foreground/80 mt-2">
+          Every bathroom tells a story.
+        </p>
+      </div>
+
       {/* Loading Indicator */}
       {isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background">
@@ -79,6 +89,13 @@ const Hero = ({
       {/* Content Overlay */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
         
+      </div>
+
+      {/* Bottom text - visible on mobile to fill empty space */}
+      <div className="md:hidden absolute bottom-24 left-0 right-0 z-20 text-center px-6">
+        <p className="text-muted-foreground/70 font-body text-xs leading-relaxed">
+          With Avil, yours will speak of quiet luxury, thoughtful design, and uncompromising quality.
+        </p>
       </div>
 
       {/* Scroll Indicator */}
