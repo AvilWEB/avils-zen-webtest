@@ -15,6 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { Upload, X, Check, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage, blobToBase64, type CompressedImage } from "@/lib/imageUtils";
 
 interface RequestEstimateModalProps {
   isOpen: boolean;
@@ -22,10 +23,10 @@ interface RequestEstimateModalProps {
 }
 
 interface PhotoFile {
-  file: File;
+  blob: Blob;
   preview: string;
-  type: string;
-  data: string;
+  originalName: string;
+  compressedSize: number;
 }
 
 const RequestEstimateModal = ({
@@ -52,7 +53,9 @@ const RequestEstimateModal = ({
 
   const progress = (step / 3) * 100;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [isCompressing, setIsCompressing] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter((file) => {
       const isValidType = file.type.startsWith("image/");
@@ -68,23 +71,37 @@ const RequestEstimateModal = ({
       });
     }
 
-    // Convert files to base64 for sending to backend
-    validFiles.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const preview = URL.createObjectURL(file);
+    if (validFiles.length === 0) return;
+
+    setIsCompressing(true);
+    
+    try {
+      // Compress each file
+      for (const file of validFiles) {
+        const compressed = await compressImage(file);
         setPhotos((prev) => [
           ...prev,
           {
-            file,
-            preview,
-            type: file.type,
-            data: reader.result as string,
+            blob: compressed.blob,
+            preview: compressed.preview,
+            originalName: compressed.originalName,
+            compressedSize: compressed.compressedSize,
           },
         ]);
-      };
-      reader.readAsDataURL(file);
-    });
+      }
+      
+      const totalSaved = validFiles.reduce((acc, f) => acc + f.size, 0);
+      console.log(`Compressed ${validFiles.length} images, original total: ${(totalSaved / 1024).toFixed(0)}KB`);
+    } catch (error) {
+      console.error("Error compressing images:", error);
+      toast({
+        title: "Error processing images",
+        description: "Some images could not be compressed. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCompressing(false);
+    }
   };
 
   const removePhoto = (index: number) => {
@@ -160,9 +177,9 @@ const RequestEstimateModal = ({
     webhookFormData.append("submittedAt", new Date().toISOString());
     webhookFormData.append("photoCount", photos.length.toString());
     
-    // Add each photo file as actual file (multipart/form-data)
+    // Add each compressed photo as actual file (multipart/form-data)
     photos.forEach((photo, index) => {
-      webhookFormData.append(`photo_${index + 1}`, photo.file, photo.file.name);
+      webhookFormData.append(`photo_${index + 1}`, photo.blob, photo.originalName);
     });
 
     try {
@@ -187,6 +204,14 @@ const RequestEstimateModal = ({
       // Send data to Make.com webhook first (non-blocking for payment flow)
       sendToMakeWebhook();
 
+      // Convert compressed blobs to base64 for edge function
+      const photosWithBase64 = await Promise.all(
+        photos.map(async (p) => ({
+          type: "image/jpeg",
+          data: `data:image/jpeg;base64,${await blobToBase64(p.blob)}`,
+        }))
+      );
+
       // Process submission first
       const { data: submissionData, error: submissionError } = await supabase.functions.invoke(
         "process-submission",
@@ -200,7 +225,7 @@ const RequestEstimateModal = ({
             description: formData.description,
             height: formData.height,
             heightUnit: formData.heightUnit,
-            photos: photos.map((p) => ({ type: p.type, data: p.data })),
+            photos: photosWithBase64,
           },
         }
       );
@@ -379,18 +404,30 @@ const RequestEstimateModal = ({
                     accept="image/*"
                     onChange={handleFileChange}
                     className="hidden"
+                    disabled={isCompressing}
                   />
                   <label
                     htmlFor="photo-upload"
                     className="cursor-pointer flex flex-col items-center gap-2"
                   >
-                    <Upload className="w-8 h-8 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      Click to upload or drag and drop
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      JPG, PNG up to 10MB (max 10 files)
-                    </p>
+                    {isCompressing ? (
+                      <>
+                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                        <p className="text-sm text-muted-foreground">
+                          Compressing images...
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          Click to upload or drag and drop
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          JPG, PNG up to 10MB (max 10 files) — auto-compressed
+                        </p>
+                      </>
+                    )}
                   </label>
                 </div>
 
