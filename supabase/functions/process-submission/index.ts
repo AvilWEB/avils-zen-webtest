@@ -9,6 +9,7 @@ const corsHeaders = {
 
 // Validation schema
 const submissionSchema = z.object({
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
   email: z.string().email('Invalid email address').max(255),
   phone: z.string().max(20).optional(),
   address: z.string().trim().min(5, 'Address must be at least 5 characters').max(200),
@@ -55,6 +56,7 @@ serve(async (req) => {
     }
 
     const {
+      name,
       email,
       phone,
       address,
@@ -67,6 +69,7 @@ serve(async (req) => {
     } = validationResult.data;
 
     // Sanitize text inputs
+    const sanitizedName = sanitizeText(name);
     const sanitizedDescription = sanitizeText(description);
     const sanitizedAddress = sanitizeText(address);
     const sanitizedCity = sanitizeText(city);
@@ -116,6 +119,7 @@ serve(async (req) => {
       .insert([
         {
           submission_id: submissionId,
+          name: sanitizedName,
           email,
           phone,
           address: sanitizedAddress,
