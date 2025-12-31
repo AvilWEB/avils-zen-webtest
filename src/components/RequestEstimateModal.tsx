@@ -17,6 +17,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage, blobToBase64, type CompressedImage } from "@/lib/imageUtils";
 
+const MAX_PHOTOS = 10;
+
 interface RequestEstimateModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -39,6 +41,7 @@ const RequestEstimateModal = ({
 
   // Form state
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     phone: "",
     address: "",
@@ -46,7 +49,7 @@ const RequestEstimateModal = ({
     zip: "",
     description: "",
     height: "",
-    heightUnit: "cm",
+    heightUnit: "inches",
   });
 
   const [photos, setPhotos] = useState<PhotoFile[]>([]);
@@ -57,13 +60,35 @@ const RequestEstimateModal = ({
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const validFiles = files.filter((file) => {
+    
+    // Check if adding these files would exceed the limit
+    const remainingSlots = MAX_PHOTOS - photos.length;
+    if (remainingSlots <= 0) {
+      toast({
+        title: "Maximum photos reached",
+        description: `You can upload a maximum of ${MAX_PHOTOS} photos.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Limit files to remaining slots
+    const filesToProcess = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      toast({
+        title: "Some files were skipped",
+        description: `Only ${remainingSlots} more photo(s) can be added. Maximum is ${MAX_PHOTOS}.`,
+        variant: "destructive",
+      });
+    }
+    
+    const validFiles = filesToProcess.filter((file) => {
       const isValidType = file.type.startsWith("image/");
       const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
       return isValidType && isValidSize;
     });
 
-    if (validFiles.length !== files.length) {
+    if (validFiles.length !== filesToProcess.length) {
       toast({
         title: "Some files were skipped",
         description: "Please upload only images under 10MB each.",
@@ -112,6 +137,14 @@ const RequestEstimateModal = ({
   const handleNext = () => {
     // Basic validation
     if (step === 1) {
+      if (!formData.name || formData.name.trim().length < 2) {
+        toast({
+          title: "Name required",
+          description: "Please enter your name (at least 2 characters).",
+          variant: "destructive",
+        });
+        return;
+      }
       if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) {
         toast({
           title: "Invalid email",
@@ -166,6 +199,7 @@ const RequestEstimateModal = ({
     const webhookFormData = new FormData();
     
     // Add all form fields
+    webhookFormData.append("name", formData.name);
     webhookFormData.append("email", formData.email);
     webhookFormData.append("phone", formData.phone || "");
     webhookFormData.append("address", formData.address);
@@ -217,6 +251,7 @@ const RequestEstimateModal = ({
         "process-submission",
         {
           body: {
+            name: formData.name,
             email: formData.email,
             phone: formData.phone,
             address: formData.address,
@@ -272,6 +307,7 @@ const RequestEstimateModal = ({
       
       // Reset form
       setFormData({
+        name: "",
         email: "",
         phone: "",
         address: "",
@@ -279,13 +315,15 @@ const RequestEstimateModal = ({
         zip: "",
         description: "",
         height: "",
-        heightUnit: "cm",
+        heightUnit: "inches",
       });
       setPhotos([]);
       setStep(1);
       onClose();
     }
   };
+
+  const isUploadDisabled = isCompressing || photos.length >= MAX_PHOTOS;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -309,6 +347,22 @@ const RequestEstimateModal = ({
           {/* Step 1: Contact */}
           {step === 1 && (
             <div className="space-y-4">
+              <div>
+                <Label htmlFor="name">
+                  Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  required
+                />
+              </div>
+
               <div>
                 <Label htmlFor="email">
                   Email <span className="text-destructive">*</span>
@@ -396,7 +450,11 @@ const RequestEstimateModal = ({
                 <Label>
                   Upload Photos <span className="text-destructive">*</span>
                 </Label>
-                <div className="mt-2 border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary transition-colors cursor-pointer">
+                <div className={`mt-2 border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
+                  isUploadDisabled 
+                    ? "border-muted bg-muted/30 cursor-not-allowed" 
+                    : "border-border hover:border-primary cursor-pointer"
+                }`}>
                   <input
                     type="file"
                     id="photo-upload"
@@ -404,17 +462,24 @@ const RequestEstimateModal = ({
                     accept="image/*"
                     onChange={handleFileChange}
                     className="hidden"
-                    disabled={isCompressing}
+                    disabled={isUploadDisabled}
                   />
                   <label
                     htmlFor="photo-upload"
-                    className="cursor-pointer flex flex-col items-center gap-2"
+                    className={`flex flex-col items-center gap-2 ${isUploadDisabled ? "cursor-not-allowed" : "cursor-pointer"}`}
                   >
                     {isCompressing ? (
                       <>
                         <Loader2 className="w-8 h-8 text-primary animate-spin" />
                         <p className="text-sm text-muted-foreground">
                           Compressing images...
+                        </p>
+                      </>
+                    ) : photos.length >= MAX_PHOTOS ? (
+                      <>
+                        <Check className="w-8 h-8 text-primary" />
+                        <p className="text-sm text-muted-foreground">
+                          Maximum {MAX_PHOTOS} photos reached
                         </p>
                       </>
                     ) : (
@@ -424,7 +489,7 @@ const RequestEstimateModal = ({
                           Click to upload or drag and drop
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          JPG, PNG up to 10MB (max 10 files) — auto-compressed
+                          JPG, PNG up to 10MB • Max {MAX_PHOTOS} photos ({photos.length}/{MAX_PHOTOS}) • Auto-compressed
                         </p>
                       </>
                     )}
@@ -481,7 +546,7 @@ const RequestEstimateModal = ({
                   <Input
                     id="height"
                     type="number"
-                    placeholder="170"
+                    placeholder="70"
                     value={formData.height}
                     onChange={(e) =>
                       setFormData({ ...formData, height: e.target.value })
@@ -497,8 +562,8 @@ const RequestEstimateModal = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="cm">cm</SelectItem>
                       <SelectItem value="inches">in</SelectItem>
+                      <SelectItem value="cm">cm</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -513,6 +578,10 @@ const RequestEstimateModal = ({
                 <h3 className="font-semibold text-lg">Submission Summary</h3>
 
                 <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Name:</span>
+                    <span className="font-medium">{formData.name}</span>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Email:</span>
                     <span className="font-medium">{formData.email}</span>

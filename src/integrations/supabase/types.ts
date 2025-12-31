@@ -24,6 +24,7 @@ export type Database = {
           height: string | null
           height_unit: string | null
           id: string
+          name: string | null
           phone: string | null
           photos_folder_url: string | null
           status: string | null
@@ -41,6 +42,7 @@ export type Database = {
           height?: string | null
           height_unit?: string | null
           id?: string
+          name?: string | null
           phone?: string | null
           photos_folder_url?: string | null
           status?: string | null
@@ -58,6 +60,7 @@ export type Database = {
           height?: string | null
           height_unit?: string | null
           id?: string
+          name?: string | null
           phone?: string | null
           photos_folder_url?: string | null
           status?: string | null
