@@ -16,8 +16,7 @@ const submissionSchema = z.object({
   city: z.string().trim().min(2, 'City must be at least 2 characters').max(100),
   zip: z.string().trim().min(3, 'ZIP code required').max(10),
   description: z.string().trim().min(10, 'Description must be at least 10 characters').max(500),
-  height: z.string().max(10).optional(),
-  heightUnit: z.enum(['cm', 'inches', 'feet']).optional(),
+  priorities: z.string().max(500).optional(),
   photos: z.array(z.object({
     type: z.string().regex(/^image\/(jpeg|jpg|png|webp)$/, 'Invalid image type'),
     data: z.string()
@@ -63,8 +62,7 @@ serve(async (req) => {
       city,
       zip,
       description,
-      height,
-      heightUnit,
+      priorities,
       photos,
     } = validationResult.data;
 
@@ -126,8 +124,7 @@ serve(async (req) => {
           city: sanitizedCity,
           zip,
           description: sanitizedDescription,
-          height,
-          height_unit: heightUnit,
+          priorities: priorities ? sanitizeText(priorities) : null,
           photos_folder_url: photoUrls.join(","),
           status: "pending_payment",
         },

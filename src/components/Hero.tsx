@@ -78,7 +78,14 @@ const Hero = ({
 
       {/* Content Overlay */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
-        
+        <div className="bg-background/60 backdrop-blur-sm rounded-lg px-8 py-10 max-w-3xl">
+          <h1 className="font-heading text-2xl md:text-4xl lg:text-5xl text-foreground leading-tight mb-4">
+            We design and build bathrooms for people who value lasting quality — not quick fixes.
+          </h1>
+          <p className="font-body text-sm md:text-base text-muted-foreground tracking-wide">
+            Direct collaboration. Thoughtful design. Built to last.
+          </p>
+        </div>
       </div>
 
       {/* Scroll Indicator */}

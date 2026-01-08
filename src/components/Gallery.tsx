@@ -89,6 +89,11 @@ const Gallery = () => {
                 </div>
               </div>)}
           </div>
+          
+          {/* Contextual line */}
+          <p className="text-center text-muted-foreground/80 font-light italic text-sm md:text-base mt-10 max-w-2xl mx-auto">
+            Every bathroom you see here was designed around how the client lives — not around trends or shortcuts.
+          </p>
         </div>
 
         {/* Video Lightbox */}

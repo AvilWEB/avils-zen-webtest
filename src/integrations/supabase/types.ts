@@ -27,6 +27,7 @@ export type Database = {
           name: string | null
           phone: string | null
           photos_folder_url: string | null
+          priorities: string | null
           status: string | null
           stripe_payment_id: string | null
           submission_id: string
@@ -45,6 +46,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           photos_folder_url?: string | null
+          priorities?: string | null
           status?: string | null
           stripe_payment_id?: string | null
           submission_id: string
@@ -63,6 +65,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           photos_folder_url?: string | null
+          priorities?: string | null
           status?: string | null
           stripe_payment_id?: string | null
           submission_id?: string
