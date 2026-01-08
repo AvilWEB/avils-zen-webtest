@@ -623,7 +623,7 @@ serve(async (req) => {
               submission.email || "", // C: Customer_email
               `${submission.address}, ${submission.city}, ${submission.zip}`, // D: Address
               submission.submission_id || "", // E: Id
-              "$50.00", // F: Amount
+              "$100.00", // F: Amount
               session.id || "", // G: Stripe_session_id
               submission.status || "paid", // H: Status
               createdAt, // I: Created_at
@@ -712,7 +712,7 @@ serve(async (req) => {
                 submission_id: submissionId,
                 stripe_session_id: session.id,
                 customer_email: session.customer_email,
-                amount: "$50.00",
+                amount: "$100.00",
                 status: "paid",
                 created_at: createdAt,
                 action: existingRow ? "updated" : "created"

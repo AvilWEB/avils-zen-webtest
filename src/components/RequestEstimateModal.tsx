@@ -587,7 +587,7 @@ const RequestEstimateModal = ({
 
               <div className="bg-primary/10 rounded-xl p-6 text-center">
                 <p className="text-2xl font-bold text-foreground mb-2">
-                  Evaluation Fee: $50
+                  Evaluation Fee: $100
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Secure payment via Stripe • Credited if you proceed with full
@@ -633,7 +633,7 @@ const RequestEstimateModal = ({
                   ) : (
                     <>
                       <Check className="w-4 h-4 mr-2" />
-                      Submit & Pay $50
+                      Submit & Pay $100
                     </>
                   )}
                 </Button>
