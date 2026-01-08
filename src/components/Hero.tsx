@@ -76,12 +76,18 @@ const Hero = ({
         )}
       </button>
 
-      {/* Content Overlay - Positioned at Top */}
+      {/* Headline - Positioned at Top */}
       <div className="absolute top-0 left-0 right-0 z-10 px-4 pt-6 md:pt-10 text-center">
-        <div className="bg-background/60 backdrop-blur-sm rounded-lg px-6 py-6 md:px-8 md:py-8 max-w-3xl mx-auto">
-          <h1 className="font-heading text-xl md:text-3xl lg:text-4xl text-foreground leading-tight mb-3">
+        <div className="bg-background/60 backdrop-blur-sm rounded-lg px-6 py-5 md:px-8 md:py-6 max-w-3xl mx-auto">
+          <h1 className="font-heading text-xl md:text-3xl lg:text-4xl text-foreground leading-tight">
             We design and build bathrooms for people who value lasting quality — not quick fixes.
           </h1>
+        </div>
+      </div>
+
+      {/* Subheadline - Positioned at Bottom */}
+      <div className="absolute bottom-20 left-0 right-0 z-10 px-4 text-center">
+        <div className="bg-background/60 backdrop-blur-sm rounded-lg px-6 py-4 md:px-8 md:py-5 max-w-xl mx-auto">
           <p className="font-body text-xs md:text-sm text-muted-foreground tracking-wide">
             Direct collaboration. Thoughtful design. Built to last.
           </p>
