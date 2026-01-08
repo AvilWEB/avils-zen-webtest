@@ -4,13 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Upload, X, Check, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -48,8 +41,7 @@ const RequestEstimateModal = ({
     city: "",
     zip: "",
     description: "",
-    height: "",
-    heightUnit: "inches",
+    priorities: "",
   });
 
   const [photos, setPhotos] = useState<PhotoFile[]>([]);
@@ -206,8 +198,7 @@ const RequestEstimateModal = ({
     webhookFormData.append("city", formData.city);
     webhookFormData.append("zip", formData.zip);
     webhookFormData.append("description", formData.description);
-    webhookFormData.append("height", formData.height || "");
-    webhookFormData.append("heightUnit", formData.heightUnit);
+    webhookFormData.append("priorities", formData.priorities || "");
     webhookFormData.append("submittedAt", new Date().toISOString());
     webhookFormData.append("photoCount", photos.length.toString());
     
@@ -258,8 +249,7 @@ const RequestEstimateModal = ({
             city: formData.city,
             zip: formData.zip,
             description: formData.description,
-            height: formData.height,
-            heightUnit: formData.heightUnit,
+            priorities: formData.priorities,
             photos: photosWithBase64,
           },
         }
@@ -314,8 +304,7 @@ const RequestEstimateModal = ({
         city: "",
         zip: "",
         description: "",
-        height: "",
-        heightUnit: "inches",
+        priorities: "",
       });
       setPhotos([]);
       setStep(1);
@@ -541,32 +530,23 @@ const RequestEstimateModal = ({
               </div>
 
               <div>
-                <Label htmlFor="height">Your standing height (optional)</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="height"
-                    type="number"
-                    placeholder="70"
-                    value={formData.height}
-                    onChange={(e) =>
-                      setFormData({ ...formData, height: e.target.value })
-                    }
-                  />
-                  <Select
-                    value={formData.heightUnit}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, heightUnit: value })
-                    }
-                  >
-                    <SelectTrigger className="w-24">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="inches">in</SelectItem>
-                      <SelectItem value="cm">cm</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Label htmlFor="priorities" className="text-foreground/90">
+                  What matters most to you in this renovation?
+                </Label>
+                <Textarea
+                  id="priorities"
+                  placeholder="Quality, longevity, daily comfort... share what's important to you."
+                  value={formData.priorities}
+                  onChange={(e) =>
+                    setFormData({ ...formData, priorities: e.target.value })
+                  }
+                  rows={3}
+                  maxLength={500}
+                  className="mt-2"
+                />
+                <p className="text-xs text-muted-foreground/70 mt-2 italic">
+                  This helps us understand your priorities
+                </p>
               </div>
             </div>
           )}
