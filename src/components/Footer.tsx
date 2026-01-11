@@ -42,7 +42,7 @@ const Footer = () => {
                 <span>info@avilsbathrooms.com</span>
               </a>
               <a
-                href="https://maps.app.goo.gl/zbzYZkNnsah6s8vd9"
+                href="https://share.google/yCNtC2qjCwrYvjpsk"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-background/80 hover:text-background transition-colors"
