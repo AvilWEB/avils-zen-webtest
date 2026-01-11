@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import WhyAvil from "@/components/WhyAvil";
 import ServicesProcess from "@/components/ServicesProcess";
 import Gallery from "@/components/Gallery";
+import DirectConnection from "@/components/DirectConnection";
 import EvaluationDetails from "@/components/EvaluationDetails";
 import Testimonials from "@/components/Testimonials";
 import FAQ from "@/components/FAQ";
@@ -19,6 +20,7 @@ const Index = () => {
       <WhyAvil />
       <ServicesProcess />
       <Gallery />
+      <DirectConnection />
       <EvaluationDetails onOpenModal={() => setIsModalOpen(true)} />
       <Testimonials />
       <FAQ />
