@@ -27,7 +27,7 @@ const StickyCTA = ({
   if (!isVisible) return null;
   return <div className="fixed bottom-6 right-6 z-40 animate-in slide-in-from-bottom-4">
       <Button size="lg" onClick={onOpenModal} className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-6 rounded-xl shadow-elegant transition-all hover:shadow-xl hover:scale-105">
-        <span className="mr-2">Request Avil's Estimate - $100</span>
+        <span className="mr-2">Request Estimate - $100</span>
         <ArrowUp className="w-5 h-5" />
       </Button>
     </div>;
