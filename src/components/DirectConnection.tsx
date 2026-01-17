@@ -40,7 +40,7 @@ const DirectConnection = () => {
             </p>
           </div>
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-foreground mb-2">This approach works best for clients who value a thoughtful process over a fast transaction - and who want a bathroom that still feels right years from now.</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Longevity</h3>
             <p className="text-muted-foreground">
               Built to last, not just to impress
             </p>
