@@ -22,9 +22,7 @@ const DirectConnection = () => {
             and ultimately deliver the finished result.
           </p>
           <p className="text-lg text-foreground leading-relaxed">
-            This direct relationship means your priorities stay central — from initial ideas through final details. 
-            Questions get answered quickly. Decisions are made with care. And the work reflects what you actually need, 
-            not what's easiest to sell.
+            This direct relationship means your priorities stay central - from initial ideas through final details. Questions get answered quickly. Decisions are made with care. And the work reflects what you actually need, not what's easiest to sell.
           </p>
         </div>
 
