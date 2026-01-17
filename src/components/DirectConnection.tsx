@@ -5,9 +5,16 @@ const DirectConnection = () => {
         <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
           How We Work Together
         </h2>
-        <p className="text-xl text-muted-foreground font-light mb-12">
+        <p className="text-xl text-muted-foreground font-light mb-8">
           A direct, personal approach to bathroom renovation
         </p>
+
+        <div className="bg-muted/30 border border-border/50 rounded-lg p-6 mb-12">
+          <p className="text-lg text-foreground leading-relaxed text-center">
+            AVIL's Bathrooms serves Bridgeport and nearby Connecticut towns.<br />
+            Every project is handled directly by the master craftsman — no sales teams, no subcontractors, no shortcuts.
+          </p>
+        </div>
 
         <div className="text-left space-y-6 mb-12">
           <p className="text-lg text-foreground leading-relaxed">
