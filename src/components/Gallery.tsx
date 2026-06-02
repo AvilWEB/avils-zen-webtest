@@ -48,7 +48,7 @@ const Gallery = () => {
       <div className="max-w-[1800px] mx-auto">
         <div className="text-center mb-16 px-4">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
-            Before / Process / After
+            Bridgeport Bathroom Renovations: Before / Process / After
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-light">
             Witness the transformation. Every project is a testament to
