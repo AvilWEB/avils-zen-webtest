@@ -1,28 +1,49 @@
+## Plan: Technical SEO + Video Preload Fix
 
+Fast wins only. No Semrush calls or copy rewrites yet.
 
-## Plan: Update Gift Card in Brand Book
+### 1. `index.html`
+- Update `<title>` and `<meta description>` to include local intent: "Bathroom Remodeling Bridgeport CT | Fairfield County | Avil's Bathrooms"
+- Add `<link rel="canonical" href="https://avilsbathrooms.com/" />`
+- Update `og:url` to `https://avilsbathrooms.com/`
+- Add **LocalBusiness JSON-LD** with: name, address (259 Willow St, Bridgeport, CT 06610), phone (+1 475-351-0934), email, `areaServed` (Bridgeport, Fairfield, Stamford, Norwalk, Westport, Trumbull, Milford), `priceRange`, `geo` coordinates, `image`, and `url`
 
-### Current State
-- `ComponentTemplates.tsx` shows a gift card preview image (`gift-card-template-preview.jpg`) and links to an external GitHub release for the PSD download
-- The old preview image lives at `src/assets/gift-card-template-preview.jpg`
+### 2. `public/sitemap.xml` (new)
+Static file with public routes:
+- `/` (priority 1.0, weekly)
+- `/brand-book` (priority 0.5, monthly)
 
-### Steps
+Omit `/payment-success` and `*` (NotFound).
 
-1. **Extract the uploaded zip** to get the new gift card files (PSD templates and any preview images)
+### 3. `public/robots.txt`
+Add at the bottom:
+```
+Sitemap: https://avilsbathrooms.com/sitemap.xml
+```
+Keep existing user-agent blocks.
 
-2. **Delete old gift card asset** — remove `src/assets/gift-card-template-preview.jpg`
+### 4. Local keyword H2s
+Add Bridgeport/Fairfield County phrasing to existing H2s without changing layout or copy intent:
+- `WhyAvil` — work "Bridgeport, CT" into the H2
+- `DirectConnection` — already mentions Bridgeport in body; tighten H2 to reference Fairfield County service area
+- `Gallery` — H2 mentions "Bridgeport bathroom renovations"
 
-3. **Add new gift card assets**:
-   - Copy new preview image(s) from the zip into `src/assets/`
-   - Copy downloadable PSD file(s) into `public/downloads/` so they can be directly downloaded from the site
+Only H2 text changes, no structural edits.
 
-4. **Update `ComponentTemplates.tsx`**:
-   - Replace the old preview image import with the new one(s)
-   - Change the download link from the external GitHub URL to the local `/downloads/` path
-   - If multiple gift card variants exist in the zip, display each with its own preview and download button
+### 5. Hero video preload fix (`src/components/Hero.tsx`)
+- Change `preload="auto"` → `preload="metadata"` on the hero `<video>` (saves ~MBs on every page load)
+- Add a `poster` attribute pointing to an existing hero still (or skip poster if no still exists — happy to generate one if you want)
 
-### Technical Details
-- PSD files go in `public/downloads/` for direct download (not bundled by Vite)
-- Preview images go in `src/assets/` for optimized bundling
-- If the zip only contains PSDs (no preview JPGs), we'll convert or create preview images from them
+### 6. Testimonial videos (`src/components/Testimonials.tsx`)
+- Verify `preload="metadata"` (not `auto`) — adjust if needed
 
+---
+
+### Out of scope for this pass
+- Semrush keyword research → next pass
+- Body copy rewrites → next pass
+- Image WebP conversion → separate pass if needed
+- Backlinks → advisory only, no code
+- Google Search Console submission → I'll point you to it after deploy
+
+Approve to proceed.
