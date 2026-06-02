@@ -37,7 +37,7 @@ const Hero = ({
 
       {/* Video Background */}
       <div className="absolute inset-0 z-0 flex items-center justify-center">
-        <video ref={videoRef} autoPlay muted={isMuted} loop playsInline preload="auto" onCanPlay={handleReady} onLoadedData={handleReady} onPlaying={handleReady} onError={handleVideoError} className="w-full h-full object-contain">
+        <video ref={videoRef} autoPlay muted={isMuted} loop playsInline preload="metadata" onCanPlay={handleReady} onLoadedData={handleReady} onPlaying={handleReady} onError={handleVideoError} className="w-full h-full object-contain">
           <source src="/baner-video-main.mp4" type="video/mp4" />
         </video>
       </div>

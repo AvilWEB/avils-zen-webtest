@@ -16,7 +16,7 @@ const WhyAvil = () => {
   return <section className="py-20 md:py-32 px-4 bg-card">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">Why Avil's Bathrooms</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">Why Choose Avil's Bathrooms in Bridgeport, CT</h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-light">
             Every bathroom tells a story. With Avil, yours will speak of quiet
             luxury, thoughtful design, and uncompromising quality.

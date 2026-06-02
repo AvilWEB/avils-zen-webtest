@@ -2,8 +2,7 @@ const DirectConnection = () => {
   return <section className="py-20 md:py-32 px-4 bg-background">
       <div className="max-w-3xl mx-auto text-center">
         <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
-          How We Work Together
-        </h2>
+          Serving Bridgeport & Fairfield County, CT</h2>
         <p className="text-xl text-muted-foreground font-light mb-8">
           A direct, personal approach to bathroom renovation
         </p>
