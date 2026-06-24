@@ -155,8 +155,8 @@ serve(async (req) => {
           `<b>Email:</b> ${esc(email)}`,
           `<b>Phone:</b> ${esc(phone || "")}`,
           `<b>Address:</b> ${esc(`${sanitizedAddress}, ${sanitizedCity}, ${zip}`)}`,
-          `<b>Description:</b> ${esc(sanitizedDescription)}`,
-          `<b>What matters most:</b> ${esc(priorities ? sanitizeText(priorities) : "")}`,
+          `<b>What would you like to do:</b> ${esc(sanitizedDescription)}`,
+          `<b>What matters most:</b> ${esc(priorities ? sanitizeText(priorities) : "(not provided)")}`,
           "<b>Photos:</b>",
           ...photoUrls,
         ];
