@@ -356,7 +356,7 @@ serve(async (req) => {
             `${sanitizedDescription}${priorities ? " | priorities: " + sanitizeText(priorities) : ""}`, // L: Notes
           ];
           const appendRes = await fetch(
-            `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:L:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+            `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A1:L1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
             {
               method: "POST",
               headers: {
