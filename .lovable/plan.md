@@ -1,49 +1,63 @@
-## Plan: Technical SEO + Video Preload Fix
+## Goal
 
-Fast wins only. No Semrush calls or copy rewrites yet.
+Fix two issues with the lead-capture automation, and upgrade Telegram notifications to display real inline photos instead of plain URLs.
 
-### 1. `index.html`
-- Update `<title>` and `<meta description>` to include local intent: "Bathroom Remodeling Bridgeport CT | Fairfield County | Avil's Bathrooms"
-- Add `<link rel="canonical" href="https://avilsbathrooms.com/" />`
-- Update `og:url` to `https://avilsbathrooms.com/`
-- Add **LocalBusiness JSON-LD** with: name, address (259 Willow St, Bridgeport, CT 06610), phone (+1 475-351-0934), email, `areaServed` (Bridgeport, Fairfield, Stamford, Norwalk, Westport, Trumbull, Milford), `priceRange`, `geo` coordinates, `image`, and `url`
+1. Telegram receives lead text but photo links return `{"statusCode":"404","error":"Bucket not found"}`.
+2. Google Sheets stays empty when leads are submitted without payment.
+3. Photos in Telegram should render as actual inline images, not clickable links.
 
-### 2. `public/sitemap.xml` (new)
-Static file with public routes:
-- `/` (priority 1.0, weekly)
-- `/brand-book` (priority 0.5, monthly)
+## Why this is happening
 
-Omit `/payment-success` and `*` (NotFound).
+1. The `bathroom-photos` storage bucket is **private**. `getPublicUrl()` only works for public buckets, so Telegram (and anyone clicking) sees a 404.
+2. Google Sheets sync lives **only** in `stripe-webhook` (runs after `checkout.session.completed`). Unpaid submissions never hit it.
+3. The current Telegram code uses `sendMessage` with photo URLs in the body, which Telegram renders as text links — not images.
 
-### 3. `public/robots.txt`
-Add at the bottom:
-```
-Sitemap: https://avilsbathrooms.com/sitemap.xml
-```
-Keep existing user-agent blocks.
+## Changes
 
-### 4. Local keyword H2s
-Add Bridgeport/Fairfield County phrasing to existing H2s without changing layout or copy intent:
-- `WhyAvil` — work "Bridgeport, CT" into the H2
-- `DirectConnection` — already mentions Bridgeport in body; tighten H2 to reference Fairfield County service area
-- `Gallery` — H2 mentions "Bridgeport bathroom renovations"
+### 1. Make `bathroom-photos` bucket public
+- Call `supabase--storage_update_bucket(name="bathroom-photos", public=true)`.
+- Existing `getPublicUrl()` links in `submissions.photos_folder_url` start working immediately.
+- If the workspace blocks public buckets, fall back to 7-day signed URLs.
 
-Only H2 text changes, no structural edits.
+### 2. Render photos inline in Telegram (process-submission)
+Replace the single `sendMessage` call with two Telegram API calls:
 
-### 5. Hero video preload fix (`src/components/Hero.tsx`)
-- Change `preload="auto"` → `preload="metadata"` on the hero `<video>` (saves ~MBs on every page load)
-- Add a `poster` attribute pointing to an existing hero still (or skip poster if no still exists — happy to generate one if you want)
+- **`sendMessage`** — the lead text only (name, email, phone, address, description, priorities). No photo URLs in the body.
+- **`sendMediaGroup`** — sends the photos as an actual image album in the chat. Payload shape:
+  ```
+  { chat_id, media: [
+      { type: "photo", media: <public_url>, caption: "Lead <submissionId> (1/N)" },
+      { type: "photo", media: <public_url> },
+      ...
+  ] }
+  ```
+  - Telegram's `sendMediaGroup` accepts 2–10 items per album. Logic:
+    - 1 photo → use `sendPhoto` instead.
+    - 2–10 photos → one `sendMediaGroup` call.
+    - >10 photos → chunk into multiple `sendMediaGroup` calls of up to 10 each (form max is 10, so in practice one call).
+  - Telegram fetches each URL server-side, so the bucket MUST be public (fix #1) for this to work. If a URL is unreachable Telegram returns `wrong file identifier/HTTP URL specified` — we'll log that into `debug_telegram_log` like we already do.
+- Whole block stays wrapped in try/catch; submission never fails because of Telegram.
 
-### 6. Testimonial videos (`src/components/Testimonials.tsx`)
-- Verify `preload="metadata"` (not `auto`) — adjust if needed
+### 3. Add Google Sheets sync for unpaid leads (process-submission)
+After the submission is saved, append one row to `Sheet1!A:L` using the same service-account JWT flow as `stripe-webhook`:
+- Reuses `GOOGLE_SHEETS_CREDENTIALS` + `GOOGLE_SHEET_ID` (already set).
+- **F: Amount** → `"$0.00"`, **G: Stripe_session_id** → `""`, **H: Status** → `"pending_payment"`. Photos column uses the public storage URLs.
+- Non-fatal; wrapped in try/catch.
 
----
+### 4. Make `stripe-webhook` update the same row instead of duplicating
+Currently `stripe-webhook` looks up existing rows by Stripe session ID (column G). Unpaid rows have empty G, so a paid event would append a second row. Add a secondary lookup: if no match by session ID, search column E (`submission_id`) and update that row in place. Each lead becomes a single row that flips from `pending_payment` → `paid`.
 
-### Out of scope for this pass
-- Semrush keyword research → next pass
-- Body copy rewrites → next pass
-- Image WebP conversion → separate pass if needed
-- Backlinks → advisory only, no code
-- Google Search Console submission → I'll point you to it after deploy
+### 5. Deploy
+Deploy both functions (`process-submission`, `stripe-webhook`).
 
-Approve to proceed.
+### 6. Verify
+- Confirm bucket is public.
+- Submit a test lead → `debug_telegram_log` shows status 200 for both `sendMessage` and `sendMediaGroup`, and the Telegram chat shows an actual photo album.
+- Confirm a `pending_payment` row appears in the Google Sheet.
+- Complete the $100 payment → the same row updates to `paid` (no duplicate).
+
+## Out of scope
+
+- No UI / modal / validation changes.
+- No new secrets — all already set.
+- Bucket-level RLS unchanged; bucket becomes publicly readable by URL (required for Telegram to fetch the image).
