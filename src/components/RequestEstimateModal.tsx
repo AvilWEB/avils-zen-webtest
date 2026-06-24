@@ -184,41 +184,6 @@ const RequestEstimateModal = ({
     setStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/wrnxhxamaqnecwlwqpojh281so1fx94y";
-
-  // Send form data and photos to Make.com webhook using FormData (multipart/form-data)
-  const sendToMakeWebhook = async () => {
-    const webhookFormData = new FormData();
-    
-    // Add all form fields
-    webhookFormData.append("name", formData.name);
-    webhookFormData.append("email", formData.email);
-    webhookFormData.append("phone", formData.phone || "");
-    webhookFormData.append("address", formData.address);
-    webhookFormData.append("city", formData.city);
-    webhookFormData.append("zip", formData.zip);
-    webhookFormData.append("description", formData.description);
-    webhookFormData.append("priorities", formData.priorities || "");
-    webhookFormData.append("submittedAt", new Date().toISOString());
-    webhookFormData.append("photoCount", photos.length.toString());
-    
-    // Add each compressed photo as actual file (multipart/form-data)
-    photos.forEach((photo, index) => {
-      webhookFormData.append(`photo_${index + 1}`, photo.blob, photo.originalName);
-    });
-
-    try {
-      const response = await fetch(MAKE_WEBHOOK_URL, {
-        method: "POST",
-        body: webhookFormData,
-        // No Content-Type header - browser sets it automatically with boundary for multipart/form-data
-      });
-      console.log("Form data sent to Make.com webhook successfully", response.status);
-    } catch (error) {
-      console.error("Error sending to Make.com webhook:", error);
-      // Don't throw - we still want the payment flow to continue
-    }
-  };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -226,8 +191,6 @@ const RequestEstimateModal = ({
     try {
       console.log("Processing submission...");
 
-      // Send data to Make.com webhook first (non-blocking for payment flow)
-      sendToMakeWebhook();
 
       // Convert compressed blobs to base64 for edge function
       const photosWithBase64 = await Promise.all(
