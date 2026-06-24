@@ -101,32 +101,35 @@ serve(async (req) => {
     const randomId = Math.random().toString(36).substring(7).toUpperCase();
     const submissionId = `${timestamp}_${email.split("@")[0]}_${randomId}`;
 
-    // Upload photos to storage
+    // Upload photos to storage and generate long-lived signed URLs (bucket is private)
     const photoUrls: string[] = [];
+    const SIGNED_URL_TTL = 60 * 60 * 24 * 365; // 1 year
     for (let i = 0; i < photos.length; i++) {
       const photo = photos[i];
       const fileName = `${submissionId}/${Date.now()}_${i}.${photo.type.split("/")[1]}`;
-      
-      // Convert base64 to blob
+
       const base64Data = photo.data.split(",")[1];
       const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
-      
+
       const { error: uploadError } = await supabaseClient.storage
         .from("bathroom-photos")
-        .upload(fileName, binaryData, {
-          contentType: photo.type,
-        });
+        .upload(fileName, binaryData, { contentType: photo.type });
 
       if (uploadError) {
         console.error("Error uploading photo:", uploadError);
         throw new Error(`Failed to upload photo: ${uploadError.message}`);
       }
 
-      const { data: urlData } = supabaseClient.storage
+      const { data: signedData, error: signedErr } = await supabaseClient.storage
         .from("bathroom-photos")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, SIGNED_URL_TTL);
 
-      photoUrls.push(urlData.publicUrl);
+      if (signedErr || !signedData?.signedUrl) {
+        console.error("Error signing photo URL:", signedErr);
+        throw new Error(`Failed to sign photo URL: ${signedErr?.message}`);
+      }
+
+      photoUrls.push(signedData.signedUrl);
     }
 
     // Save submission to database
