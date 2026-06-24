@@ -587,8 +587,8 @@ serve(async (req) => {
             logStep("✅ OAuth access token obtained successfully");
 
             // Check for existing row (idempotency)
-            logStep("🔍 Checking for existing row with Stripe session ID", { sessionId: session.id });
-            const existingRow = await findExistingRow(access_token, sheetId, session.id);
+            logStep("🔍 Checking for existing row by Stripe session or submission ID", { sessionId: session.id, submissionId });
+            const existingRow = await findExistingRow(access_token, sheetId, session.id, submissionId);
             
             if (existingRow) {
               logStep("✅ Row already exists, updating instead of creating duplicate", { 
