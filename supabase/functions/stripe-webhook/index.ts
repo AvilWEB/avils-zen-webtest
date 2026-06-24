@@ -449,7 +449,48 @@ serve(async (req) => {
         updatedData: data
       });
 
+      // Send Telegram notification for paid lead — non-fatal
+      try {
+        const tgToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
+        const tgChat = Deno.env.get("TELEGRAM_CHAT_ID");
+        if (tgToken && tgChat && data && data.length > 0) {
+          const sub = data[0];
+          const esc = (s: string) =>
+            (s ?? "").toString()
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+          const lines = [
+            "✅ <b>PAID — AVIL lead</b>",
+            `<b>Name:</b> ${esc(sub.name || sub.email || "")}`,
+            `<b>Amount:</b> $100.00`,
+            `<b>Address:</b> ${esc(`${sub.address}, ${sub.city}, ${sub.zip}`)}`,
+            `<b>Submission ID:</b> ${esc(sub.submission_id)}`,
+          ];
+          const tgRes = await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chat_id: tgChat,
+              text: lines.join("\n"),
+              parse_mode: "HTML",
+              disable_web_page_preview: true,
+            }),
+          });
+          if (!tgRes.ok) {
+            logStep("Telegram notification failed", { status: tgRes.status, body: await tgRes.text() });
+          } else {
+            logStep("✅ Telegram notification sent");
+          }
+        } else {
+          logStep("Telegram env vars not set, skipping notification");
+        }
+      } catch (tgErr) {
+        logStep("Telegram notification error (non-fatal)", { error: tgErr instanceof Error ? tgErr.message : String(tgErr) });
+      }
+
       // Sync to Google Sheets
+
       try {
         if (data && data.length > 0) {
           const submission = data[0];
