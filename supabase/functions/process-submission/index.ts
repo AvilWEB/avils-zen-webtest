@@ -101,32 +101,35 @@ serve(async (req) => {
     const randomId = Math.random().toString(36).substring(7).toUpperCase();
     const submissionId = `${timestamp}_${email.split("@")[0]}_${randomId}`;
 
-    // Upload photos to storage
+    // Upload photos to storage and generate long-lived signed URLs (bucket is private)
     const photoUrls: string[] = [];
+    const SIGNED_URL_TTL = 60 * 60 * 24 * 365; // 1 year
     for (let i = 0; i < photos.length; i++) {
       const photo = photos[i];
       const fileName = `${submissionId}/${Date.now()}_${i}.${photo.type.split("/")[1]}`;
-      
-      // Convert base64 to blob
+
       const base64Data = photo.data.split(",")[1];
       const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
-      
+
       const { error: uploadError } = await supabaseClient.storage
         .from("bathroom-photos")
-        .upload(fileName, binaryData, {
-          contentType: photo.type,
-        });
+        .upload(fileName, binaryData, { contentType: photo.type });
 
       if (uploadError) {
         console.error("Error uploading photo:", uploadError);
         throw new Error(`Failed to upload photo: ${uploadError.message}`);
       }
 
-      const { data: urlData } = supabaseClient.storage
+      const { data: signedData, error: signedErr } = await supabaseClient.storage
         .from("bathroom-photos")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, SIGNED_URL_TTL);
 
-      photoUrls.push(urlData.publicUrl);
+      if (signedErr || !signedData?.signedUrl) {
+        console.error("Error signing photo URL:", signedErr);
+        throw new Error(`Failed to sign photo URL: ${signedErr?.message}`);
+      }
+
+      photoUrls.push(signedData.signedUrl);
     }
 
     // Save submission to database
@@ -172,7 +175,7 @@ serve(async (req) => {
               .replace(/&/g, "&amp;")
               .replace(/</g, "&lt;")
               .replace(/>/g, "&gt;");
-          const lines = [
+          const captionLines = [
             "🆕 <b>New AVIL lead (unpaid)</b>",
             `<b>Name:</b> ${esc(sanitizedName)}`,
             `<b>Email:</b> ${esc(email)}`,
@@ -180,23 +183,82 @@ serve(async (req) => {
             `<b>Address:</b> ${esc(`${sanitizedAddress}, ${sanitizedCity}, ${zip}`)}`,
             `<b>What would you like to do:</b> ${esc(sanitizedDescription)}`,
             `<b>What matters most:</b> ${esc(priorities ? sanitizeText(priorities) : "(not provided)")}`,
-            "<b>Photos:</b>",
-            ...photoUrls,
+            `<b>ID:</b> ${esc(submissionId)}`,
           ];
-          const tgRes = await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
+          const textMessage = captionLines.join("\n");
+
+          // 1) Send the lead text
+          const msgRes = await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               chat_id: tgChat,
-              text: lines.join("\n"),
+              text: textMessage,
               parse_mode: "HTML",
               disable_web_page_preview: true,
             }),
           });
-          telegramStatus = tgRes.status;
-          telegramResponse = await tgRes.text();
-          if (!tgRes.ok) {
-            console.error("Telegram notification failed:", telegramStatus, telegramResponse);
+          telegramStatus = msgRes.status;
+          telegramResponse = await msgRes.text();
+          if (!msgRes.ok) {
+            console.error("Telegram sendMessage failed:", telegramStatus, telegramResponse);
+          }
+
+          // 2) Send photos as actual inline images (album)
+          if (photoUrls.length > 0) {
+            // Chunk into groups of 10 (Telegram media group limit)
+            const chunks: string[][] = [];
+            for (let i = 0; i < photoUrls.length; i += 10) {
+              chunks.push(photoUrls.slice(i, i + 10));
+            }
+            for (let c = 0; c < chunks.length; c++) {
+              const chunk = chunks[c];
+              let photoStatus: number | null = null;
+              let photoResponse: string = "";
+              try {
+                if (chunk.length === 1) {
+                  const r = await fetch(`https://api.telegram.org/bot${tgToken}/sendPhoto`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      chat_id: tgChat,
+                      photo: chunk[0],
+                      caption: `Lead ${submissionId}`,
+                    }),
+                  });
+                  photoStatus = r.status;
+                  photoResponse = await r.text();
+                } else {
+                  const media = chunk.map((url, idx) => ({
+                    type: "photo",
+                    media: url,
+                    ...(idx === 0 && c === 0 ? { caption: `Lead ${submissionId}` } : {}),
+                  }));
+                  const r = await fetch(`https://api.telegram.org/bot${tgToken}/sendMediaGroup`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ chat_id: tgChat, media }),
+                  });
+                  photoStatus = r.status;
+                  photoResponse = await r.text();
+                }
+                if (photoStatus && photoStatus >= 400) {
+                  console.error("Telegram media send failed:", photoStatus, photoResponse);
+                }
+              } catch (mediaErr) {
+                photoResponse = mediaErr instanceof Error ? mediaErr.message : String(mediaErr);
+                console.error("Telegram media send error:", mediaErr);
+              }
+              try {
+                await supabaseClient.from("debug_telegram_log").insert([{
+                  submission_id: `${submissionId}_PHOTOS_${c + 1}`,
+                  has_token: hasToken,
+                  has_chat: hasChat,
+                  telegram_status: photoStatus,
+                  telegram_response: photoResponse,
+                }]);
+              } catch (_e) { /* ignore */ }
+            }
           }
         } else {
           telegramResponse = "env vars missing";
@@ -218,6 +280,105 @@ serve(async (req) => {
         console.error("debug_telegram_log insert failed (non-fatal):", logErr);
       }
     }
+
+    // Google Sheets sync for unpaid lead — non-fatal
+    try {
+      const credentialsJson = Deno.env.get("GOOGLE_SHEETS_CREDENTIALS");
+      const sheetId = Deno.env.get("GOOGLE_SHEET_ID");
+      if (credentialsJson && sheetId) {
+        const credentials = JSON.parse(credentialsJson);
+
+        const b64url = (data: string | ArrayBuffer): string => {
+          const bytes = typeof data === "string"
+            ? new TextEncoder().encode(data)
+            : new Uint8Array(data);
+          let bin = "";
+          for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+          return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        };
+        const pemToBuf = (pem: string): ArrayBuffer => {
+          const c = pem.replace(/-----BEGIN PRIVATE KEY-----/, "")
+            .replace(/-----END PRIVATE KEY-----/, "").replace(/\s/g, "");
+          const bin = atob(c);
+          const arr = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+          return arr.buffer;
+        };
+
+        const now = Math.floor(Date.now() / 1000);
+        const jwtPayload = {
+          iss: credentials.client_email,
+          scope: "https://www.googleapis.com/auth/spreadsheets",
+          aud: "https://oauth2.googleapis.com/token",
+          exp: now + 3600,
+          iat: now,
+        };
+        const unsigned = `${b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }))}.${b64url(JSON.stringify(jwtPayload))}`;
+        const key = await crypto.subtle.importKey(
+          "pkcs8",
+          pemToBuf(credentials.private_key),
+          { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+          false,
+          ["sign"],
+        );
+        const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(unsigned));
+        const jwt = `${unsigned}.${b64url(sig)}`;
+
+        const tokRes = await fetch("https://oauth2.googleapis.com/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            assertion: jwt,
+          }),
+        });
+        if (!tokRes.ok) {
+          console.error("Sheets token error:", await tokRes.text());
+        } else {
+          const { access_token } = await tokRes.json();
+          const createdAt = new Date().toLocaleString("en-US", {
+            timeZone: "America/New_York",
+            year: "numeric", month: "2-digit", day: "2-digit",
+            hour: "2-digit", minute: "2-digit", second: "2-digit",
+          });
+          const rowData = [
+            sanitizedName || email,                                  // A: Name
+            phone || "",                                             // B: Phone
+            email,                                                   // C: Email
+            `${sanitizedAddress}, ${sanitizedCity}, ${zip}`,         // D: Address
+            submissionId,                                            // E: Id
+            "$0.00",                                                 // F: Amount
+            "",                                                      // G: Stripe_session_id
+            "pending_payment",                                       // H: Status
+            createdAt,                                               // I: Created_at
+            photoUrls.join(", "),                                    // J: Photos
+            "",                                                      // K: Client_height
+            `${sanitizedDescription}${priorities ? " | priorities: " + sanitizeText(priorities) : ""}`, // L: Notes
+          ];
+          const appendRes = await fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:L:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+            {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${access_token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ values: [rowData] }),
+            },
+          );
+          if (!appendRes.ok) {
+            console.error("Sheets append failed:", appendRes.status, await appendRes.text());
+          } else {
+            console.log("Sheets append OK for", submissionId);
+          }
+        }
+      } else {
+        console.log("Sheets env vars not set, skipping unpaid lead sync");
+      }
+    } catch (sheetsErr) {
+      console.error("Sheets sync (unpaid) error (non-fatal):", sheetsErr);
+    }
+
 
 
     return new Response(
