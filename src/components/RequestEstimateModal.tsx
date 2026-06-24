@@ -279,8 +279,9 @@ const RequestEstimateModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="space-y-6">
+      <DialogContent className="max-w-2xl h-[90vh] max-h-[90vh] flex flex-col p-0 gap-0">
+        <div className="flex-1 overflow-y-auto px-6 pt-6 pb-2">
+          <div className="space-y-6">
           {/* Header */}
           <div>
             <h2 className="text-3xl font-bold text-foreground mb-2">
@@ -569,39 +570,41 @@ const RequestEstimateModal = ({
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex justify-between pt-4">
-            {step > 1 && (
-              <Button variant="outline" onClick={handleBack} disabled={isSubmitting}>
-                Back
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-between items-center px-6 py-4 border-t border-border bg-background">
+          {step > 1 && (
+            <Button variant="outline" onClick={handleBack} disabled={isSubmitting}>
+              Back
+            </Button>
+          )}
+          <div className="ml-auto space-x-2">
+            <Button variant="ghost" onClick={handleClose} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            {step < 3 ? (
+              <Button onClick={handleNext}>Next</Button>
+            ) : (
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-primary hover:bg-primary/90"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Submit & Pay $100
+                  </>
+                )}
               </Button>
             )}
-            <div className="ml-auto space-x-2">
-              <Button variant="ghost" onClick={handleClose} disabled={isSubmitting}>
-                Cancel
-              </Button>
-              {step < 3 ? (
-                <Button onClick={handleNext}>Next</Button>
-              ) : (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Submit & Pay $100
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
           </div>
         </div>
       </DialogContent>
