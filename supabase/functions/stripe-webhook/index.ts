@@ -549,59 +549,17 @@ serve(async (req) => {
               });
             }
 
-            // Handle photo uploads to Google Drive
+            // Use Supabase storage URLs directly (no Drive upload)
             let photoLinks = "";
-            if (submission.photos_folder_url && driveFolderId) {
-              logStep("📸 Processing photo uploads to Google Drive");
-              try {
-                // photos_folder_url contains comma-separated Supabase storage URLs
-                const photos = submission.photos_folder_url.split(',').map((p: string) => p.trim());
-                const uploadedLinks: string[] = [];
-
-                for (let i = 0; i < photos.length; i++) {
-                  const photoUrl = photos[i];
-                  logStep(`Fetching photo ${i + 1}/${photos.length} from Supabase storage`, { url: photoUrl });
-                  
-                  // Fetch photo from Supabase storage using signed URL
-                  const fileName = photoUrl.split('/').pop() || `${i}.jpg`;
-                  const bucketPath = photoUrl.split('/bathroom-photos/')[1];
-                  
-                  logStep(`Getting signed URL for bucket path`, { bucketPath });
-                  
-                  // Get signed URL for the photo
-                  const { data: signedUrlData, error: signedUrlError } = await supabaseClient.storage
-                    .from('bathroom-photos')
-                    .createSignedUrl(bucketPath, 3600); // Valid for 1 hour
-
-                  if (signedUrlError || !signedUrlData?.signedUrl) {
-                    throw new Error(`Failed to get signed URL: ${signedUrlError?.message}`);
-                  }
-
-                  logStep(`Got signed URL, uploading to Drive`, { signedUrl: signedUrlData.signedUrl.substring(0, 50) + '...' });
-
-                  const driveFileName = `est_${session.id}_${i + 1}.jpg`;
-                  const driveLink = await uploadPhotoToDrive(
-                    access_token,
-                    signedUrlData.signedUrl,
-                    driveFileName,
-                    driveFolderId
-                  );
-                  uploadedLinks.push(driveLink);
-                  logStep(`✅ Photo ${i + 1} uploaded to Drive`, { driveLink });
-                }
-
-                photoLinks = uploadedLinks.join(', ');
-                logStep("✅ All photos uploaded to Drive", { 
-                  count: uploadedLinks.length,
-                  links: photoLinks 
-                });
-              } catch (photoError) {
-                const photoErrorMsg = photoError instanceof Error ? photoError.message : String(photoError);
-                const photoErrorStack = photoError instanceof Error ? photoError.stack : undefined;
-                logStep("⚠️ Photo upload failed", { error: photoErrorMsg, stack: photoErrorStack });
-                photoLinks = `ERROR: ${photoErrorMsg}`;
-              }
+            if (submission.photos_folder_url) {
+              photoLinks = submission.photos_folder_url
+                .split(',')
+                .map((p: string) => p.trim())
+                .filter((p: string) => p.length > 0)
+                .join(', ');
+              logStep("📸 Using Supabase storage photo URLs directly", { photoLinks });
             }
+
             
             // Prepare row data with proper timezone
             const createdAt = new Date(submission.created_at).toLocaleString('en-US', { 
