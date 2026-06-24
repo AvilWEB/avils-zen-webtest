@@ -140,45 +140,67 @@ serve(async (req) => {
     console.log("Submission saved successfully:", submissionId);
 
     // Send Telegram notification for new (unpaid) lead — non-fatal
-    try {
+    {
+      let telegramStatus: number | null = null;
+      let telegramResponse: string = "";
       const tgToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
       const tgChat = Deno.env.get("TELEGRAM_CHAT_ID");
-      if (tgToken && tgChat) {
-        const esc = (s: string) =>
-          (s ?? "").toString()
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-        const lines = [
-          "🆕 <b>New AVIL lead (unpaid)</b>",
-          `<b>Name:</b> ${esc(sanitizedName)}`,
-          `<b>Email:</b> ${esc(email)}`,
-          `<b>Phone:</b> ${esc(phone || "")}`,
-          `<b>Address:</b> ${esc(`${sanitizedAddress}, ${sanitizedCity}, ${zip}`)}`,
-          `<b>What would you like to do:</b> ${esc(sanitizedDescription)}`,
-          `<b>What matters most:</b> ${esc(priorities ? sanitizeText(priorities) : "(not provided)")}`,
-          "<b>Photos:</b>",
-          ...photoUrls,
-        ];
-        const tgRes = await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chat_id: tgChat,
-            text: lines.join("\n"),
-            parse_mode: "HTML",
-            disable_web_page_preview: true,
-          }),
-        });
-        if (!tgRes.ok) {
-          console.error("Telegram notification failed:", tgRes.status, await tgRes.text());
+      const hasToken = !!tgToken;
+      const hasChat = !!tgChat;
+      try {
+        if (tgToken && tgChat) {
+          const esc = (s: string) =>
+            (s ?? "").toString()
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+          const lines = [
+            "🆕 <b>New AVIL lead (unpaid)</b>",
+            `<b>Name:</b> ${esc(sanitizedName)}`,
+            `<b>Email:</b> ${esc(email)}`,
+            `<b>Phone:</b> ${esc(phone || "")}`,
+            `<b>Address:</b> ${esc(`${sanitizedAddress}, ${sanitizedCity}, ${zip}`)}`,
+            `<b>What would you like to do:</b> ${esc(sanitizedDescription)}`,
+            `<b>What matters most:</b> ${esc(priorities ? sanitizeText(priorities) : "(not provided)")}`,
+            "<b>Photos:</b>",
+            ...photoUrls,
+          ];
+          const tgRes = await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chat_id: tgChat,
+              text: lines.join("\n"),
+              parse_mode: "HTML",
+              disable_web_page_preview: true,
+            }),
+          });
+          telegramStatus = tgRes.status;
+          telegramResponse = await tgRes.text();
+          if (!tgRes.ok) {
+            console.error("Telegram notification failed:", telegramStatus, telegramResponse);
+          }
+        } else {
+          telegramResponse = "env vars missing";
+          console.log("Telegram env vars not set, skipping notification");
         }
-      } else {
-        console.log("Telegram env vars not set, skipping notification");
+      } catch (tgErr) {
+        telegramResponse = tgErr instanceof Error ? tgErr.message : String(tgErr);
+        console.error("Telegram notification error (non-fatal):", tgErr);
       }
-    } catch (tgErr) {
-      console.error("Telegram notification error (non-fatal):", tgErr);
+      try {
+        await supabaseClient.from("debug_telegram_log").insert([{
+          submission_id: submissionId,
+          has_token: hasToken,
+          has_chat: hasChat,
+          telegram_status: telegramStatus,
+          telegram_response: telegramResponse,
+        }]);
+      } catch (logErr) {
+        console.error("debug_telegram_log insert failed (non-fatal):", logErr);
+      }
     }
+
 
     return new Response(
       JSON.stringify({

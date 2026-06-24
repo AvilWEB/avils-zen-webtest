@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      debug_telegram_log: {
+        Row: {
+          created_at: string | null
+          has_chat: boolean | null
+          has_token: boolean | null
+          id: number
+          submission_id: string | null
+          telegram_response: string | null
+          telegram_status: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          has_chat?: boolean | null
+          has_token?: boolean | null
+          id?: number
+          submission_id?: string | null
+          telegram_response?: string | null
+          telegram_status?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          has_chat?: boolean | null
+          has_token?: boolean | null
+          id?: number
+          submission_id?: string | null
+          telegram_response?: string | null
+          telegram_status?: number | null
+        }
+        Relationships: []
+      }
       submissions: {
         Row: {
           address: string
