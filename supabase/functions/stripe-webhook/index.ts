@@ -196,32 +196,39 @@ async function logErrorToSheet(
   }
 }
 
-// Helper function to check for existing row by Stripe session ID
+// Helper function to check for existing row by Stripe session ID, falling back to submission ID
 async function findExistingRow(
   accessToken: string,
   sheetId: string,
-  stripeSessionId: string
+  stripeSessionId: string,
+  submissionId?: string
 ): Promise<number | null> {
   try {
-    const response = await fetch(
+    // First: search column G (Stripe_session_id)
+    const gRes = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!G:G`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      { method: "GET", headers: { Authorization: `Bearer ${accessToken}` } }
     );
+    if (gRes.ok) {
+      const data = await gRes.json();
+      const values = data.values || [];
+      for (let i = 1; i < values.length; i++) {
+        if (values[i][0] === stripeSessionId) return i + 1;
+      }
+    }
 
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    const values = data.values || [];
-
-    // Find the row index (1-based, skipping header)
-    for (let i = 1; i < values.length; i++) {
-      if (values[i][0] === stripeSessionId) {
-        return i + 1; // Return 1-based row number
+    // Fallback: search column E (submission_id) for an existing unpaid row
+    if (submissionId) {
+      const eRes = await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!E:E`,
+        { method: "GET", headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      if (eRes.ok) {
+        const data = await eRes.json();
+        const values = data.values || [];
+        for (let i = 1; i < values.length; i++) {
+          if (values[i][0] === submissionId) return i + 1;
+        }
       }
     }
 
