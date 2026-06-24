@@ -139,8 +139,46 @@ serve(async (req) => {
 
     console.log("Submission saved successfully:", submissionId);
 
-    // TODO: Add integrations (Google Drive, Gmail, Telegram, SMS)
-    // For now, just return success with submission ID
+    // Send Telegram notification for new (unpaid) lead — non-fatal
+    try {
+      const tgToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
+      const tgChat = Deno.env.get("TELEGRAM_CHAT_ID");
+      if (tgToken && tgChat) {
+        const esc = (s: string) =>
+          (s ?? "").toString()
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+        const lines = [
+          "🆕 <b>New AVIL lead (unpaid)</b>",
+          `<b>Name:</b> ${esc(sanitizedName)}`,
+          `<b>Email:</b> ${esc(email)}`,
+          `<b>Phone:</b> ${esc(phone || "")}`,
+          `<b>Address:</b> ${esc(`${sanitizedAddress}, ${sanitizedCity}, ${zip}`)}`,
+          `<b>Description:</b> ${esc(sanitizedDescription)}`,
+          `<b>What matters most:</b> ${esc(priorities ? sanitizeText(priorities) : "")}`,
+          "<b>Photos:</b>",
+          ...photoUrls,
+        ];
+        const tgRes = await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: tgChat,
+            text: lines.join("\n"),
+            parse_mode: "HTML",
+            disable_web_page_preview: true,
+          }),
+        });
+        if (!tgRes.ok) {
+          console.error("Telegram notification failed:", tgRes.status, await tgRes.text());
+        }
+      } else {
+        console.log("Telegram env vars not set, skipping notification");
+      }
+    } catch (tgErr) {
+      console.error("Telegram notification error (non-fatal):", tgErr);
+    }
 
     return new Response(
       JSON.stringify({
