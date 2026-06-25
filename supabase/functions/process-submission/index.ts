@@ -277,105 +277,172 @@ serve(async (req) => {
       }
     }
 
-    // Google Sheets sync for unpaid lead — non-fatal
-    try {
-      const credentialsJson = Deno.env.get("GOOGLE_SHEETS_CREDENTIALS");
-      const sheetId = Deno.env.get("GOOGLE_SHEET_ID");
-      if (credentialsJson && sheetId) {
-        const credentials = JSON.parse(credentialsJson);
-
-        const b64url = (data: string | ArrayBuffer): string => {
-          const bytes = typeof data === "string"
-            ? new TextEncoder().encode(data)
-            : new Uint8Array(data);
-          let bin = "";
-          for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-          return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-        };
-        const pemToBuf = (pem: string): ArrayBuffer => {
-          const c = pem.replace(/-----BEGIN PRIVATE KEY-----/, "")
-            .replace(/-----END PRIVATE KEY-----/, "").replace(/\s/g, "");
-          const bin = atob(c);
-          const arr = new Uint8Array(bin.length);
-          for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-          return arr.buffer;
-        };
-
-        const now = Math.floor(Date.now() / 1000);
-        const jwtPayload = {
-          iss: credentials.client_email,
-          scope: "https://www.googleapis.com/auth/spreadsheets",
-          aud: "https://oauth2.googleapis.com/token",
-          exp: now + 3600,
-          iat: now,
-        };
-        const unsigned = `${b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }))}.${b64url(JSON.stringify(jwtPayload))}`;
-        const key = await crypto.subtle.importKey(
-          "pkcs8",
-          pemToBuf(credentials.private_key),
-          { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-          false,
-          ["sign"],
-        );
-        const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(unsigned));
-        const jwt = `${unsigned}.${b64url(sig)}`;
-
-        const tokRes = await fetch("https://oauth2.googleapis.com/token", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-            assertion: jwt,
-          }),
-        });
-        if (!tokRes.ok) {
-          console.error("Sheets token error:", await tokRes.text());
+    // Google Sheets sync — write EVERY submission immediately (idempotent)
+    {
+      let sheetStatus: number | null = null;
+      let sheetResponse: string = "";
+      let credsOk = false;
+      try {
+        const credentialsJson = Deno.env.get("GOOGLE_SHEETS_CREDENTIALS");
+        const sheetId = Deno.env.get("GOOGLE_SHEET_ID");
+        if (!credentialsJson || !sheetId) {
+          sheetResponse = "creds missing";
+          console.log("Sheets env vars not set, skipping sync");
         } else {
-          const { access_token } = await tokRes.json();
-          const createdAt = new Date().toLocaleString("en-US", {
-            timeZone: "America/New_York",
-            year: "numeric", month: "2-digit", day: "2-digit",
-            hour: "2-digit", minute: "2-digit", second: "2-digit",
-          });
-          const rowData = [
-            sanitizedName || email,                                  // A: Name
-            phone || "",                                             // B: Phone
-            email,                                                   // C: Email
-            `${sanitizedAddress}, ${sanitizedCity}, ${zip}`,         // D: Address
-            submissionId,                                            // E: Id
-            "$0.00",                                                 // F: Amount
-            "",                                                      // G: Stripe_session_id
-            "pending_payment",                                       // H: Status
-            createdAt,                                               // I: Created_at
-            photoUrls.join(", "),                                    // J: Photos
-            "",                                                      // K: Client_height
-            `${sanitizedDescription}${priorities ? " | priorities: " + sanitizeText(priorities) : ""}`, // L: Notes
-          ];
-          const tabName = Deno.env.get("GOOGLE_SHEET_TAB_NAME") || "Sheet1";
-          const quotedTab = `'${tabName.replace(/'/g, "''")}'`;
-          const appendRange = `${quotedTab}!A:L`;
-          const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${appendRange}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
-          console.log("Sheets append URL:", appendUrl);
-          const appendRes = await fetch(appendUrl, {
+          let credentials: any;
+          try {
+            credentials = JSON.parse(credentialsJson);
+            credsOk = true;
+          } catch (_e) {
+            sheetResponse = "invalid credentials JSON";
+            throw new Error("invalid credentials JSON");
+          }
+
+          const b64url = (data: string | ArrayBuffer): string => {
+            const bytes = typeof data === "string"
+              ? new TextEncoder().encode(data)
+              : new Uint8Array(data);
+            let bin = "";
+            for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+            return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+          };
+          const pemToBuf = (pem: string): ArrayBuffer => {
+            const c = pem.replace(/-----BEGIN PRIVATE KEY-----/, "")
+              .replace(/-----END PRIVATE KEY-----/, "").replace(/\s/g, "");
+            const bin = atob(c);
+            const arr = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+            return arr.buffer;
+          };
+
+          const now = Math.floor(Date.now() / 1000);
+          const jwtPayload = {
+            iss: credentials.client_email,
+            scope: "https://www.googleapis.com/auth/spreadsheets",
+            aud: "https://oauth2.googleapis.com/token",
+            exp: now + 3600,
+            iat: now,
+          };
+          const unsigned = `${b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }))}.${b64url(JSON.stringify(jwtPayload))}`;
+          const key = await crypto.subtle.importKey(
+            "pkcs8",
+            pemToBuf(credentials.private_key),
+            { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+            false,
+            ["sign"],
+          );
+          const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(unsigned));
+          const jwt = `${unsigned}.${b64url(sig)}`;
+
+          const tokRes = await fetch("https://oauth2.googleapis.com/token", {
             method: "POST",
-            headers: {
-              "Authorization": `Bearer ${access_token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ values: [rowData] }),
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+              assertion: jwt,
+            }),
           });
-          if (!appendRes.ok) {
-            console.error("Sheets append failed:", appendRes.status, await appendRes.text());
+          if (!tokRes.ok) {
+            sheetStatus = tokRes.status;
+            sheetResponse = `token error: ${await tokRes.text()}`;
+            console.error("Sheets token error:", sheetResponse);
           } else {
-            console.log("Sheets append OK for", submissionId);
+            const { access_token } = await tokRes.json();
+            const createdAt = new Date().toLocaleString("en-US", {
+              timeZone: "America/New_York",
+              year: "numeric", month: "2-digit", day: "2-digit",
+              hour: "2-digit", minute: "2-digit", second: "2-digit",
+            });
+            const rowData = [
+              sanitizedName,                                           // A: Name
+              phone || "",                                             // B: Phone
+              email,                                                   // C: Email
+              `${sanitizedAddress}, ${sanitizedCity}, ${zip}`,         // D: Address
+              submissionId,                                            // E: Id
+              "",                                                      // F: Amount (blank until paid)
+              "",                                                      // G: Stripe session id (blank until paid)
+              "pending_payment",                                       // H: Status
+              createdAt,                                               // I: Created_at
+              photoUrls.join(", "),                                    // J: Photos
+              priorities ? sanitizeText(priorities) : "",              // K: What matters most
+              sanitizedDescription,                                    // L: What would you like to do
+            ];
+
+            // Idempotency: look up submissionId in column E
+            const lookupUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!E:E`;
+            const lookupRes = await fetch(lookupUrl, {
+              headers: { "Authorization": `Bearer ${access_token}` },
+            });
+            let existingRow: number | null = null;
+            if (lookupRes.ok) {
+              const lookupData = await lookupRes.json();
+              const values: string[][] = lookupData.values || [];
+              for (let i = 0; i < values.length; i++) {
+                if ((values[i]?.[0] || "") === submissionId) {
+                  existingRow = i + 1; // 1-indexed
+                  break;
+                }
+              }
+            } else {
+              console.error("Sheets lookup failed:", lookupRes.status, await lookupRes.text());
+            }
+
+            if (existingRow !== null) {
+              const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A${existingRow}:L${existingRow}?valueInputOption=RAW`;
+              const updateRes = await fetch(updateUrl, {
+                method: "PUT",
+                headers: {
+                  "Authorization": `Bearer ${access_token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ values: [rowData] }),
+              });
+              sheetStatus = updateRes.status;
+              if (!updateRes.ok) {
+                sheetResponse = `update failed: ${await updateRes.text()}`;
+                console.error("Sheets update failed:", sheetStatus, sheetResponse);
+              } else {
+                sheetResponse = "SHEET ok (updated)";
+                console.log("Sheets row updated for", submissionId);
+              }
+            } else {
+              const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:L:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
+              const appendRes = await fetch(appendUrl, {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${access_token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ values: [rowData] }),
+              });
+              sheetStatus = appendRes.status;
+              if (!appendRes.ok) {
+                sheetResponse = `append failed: ${await appendRes.text()}`;
+                console.error("Sheets append failed:", sheetStatus, sheetResponse);
+              } else {
+                sheetResponse = "SHEET ok";
+                console.log("Sheets append OK for", submissionId);
+              }
+            }
           }
         }
-      } else {
-        console.log("Sheets env vars not set, skipping unpaid lead sync");
+      } catch (sheetsErr) {
+        if (!sheetResponse) {
+          sheetResponse = sheetsErr instanceof Error ? sheetsErr.message : String(sheetsErr);
+        }
+        console.error("Sheets sync error (non-fatal):", sheetsErr);
       }
-    } catch (sheetsErr) {
-      console.error("Sheets sync (unpaid) error (non-fatal):", sheetsErr);
+      try {
+        await supabaseClient.from("debug_telegram_log").insert([{
+          submission_id: submissionId,
+          has_token: credsOk,
+          has_chat: false,
+          telegram_status: sheetStatus,
+          telegram_response: sheetResponse.slice(0, 1000),
+        }]);
+      } catch (_e) { /* ignore */ }
     }
+
 
 
 
