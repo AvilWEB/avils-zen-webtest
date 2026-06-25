@@ -28,6 +28,26 @@ const sanitizeText = (text: string): string => {
   return text.replace(/<[^>]*>/g, '').trim();
 };
 
+const buildEmailHtml = (firstName: string) => `<!doctype html><html><body style="margin:0;padding:0;background-color:#E5E2D5;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#E5E2D5;"><tr><td align="center" style="padding:32px 16px;"><table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;"><tr><td align="center" style="padding:24px 44px 0;"><div style="font-family:Georgia,'Times New Roman',serif;font-size:27px;letter-spacing:7px;color:#131211;">AVIL'S</div><div style="font-family:Georgia,serif;font-size:15px;letter-spacing:5px;color:#4a4942;padding-top:2px;">bathrooms</div><table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px auto 0;"><tr><td style="width:40px;height:2px;background-color:#FFD700;font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr><tr><td align="center" style="padding:34px 44px 0;"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" valign="middle" style="width:52px;height:52px;background-color:#8BAB1C;border-radius:26px;color:#ffffff;font-family:Arial,sans-serif;font-size:26px;line-height:52px;">&#10003;</td></tr></table><div style="font-family:Georgia,serif;font-size:23px;color:#131211;padding-top:18px;">Payment received</div></td></tr><tr><td align="center" style="padding:20px 44px 0;font-family:Helvetica,Arial,sans-serif;font-size:15px;line-height:1.75;color:#2b2a26;">Thank you, ${firstName}. We&rsquo;ve received your evaluation fee, and your project is now in our hands.</td></tr><tr><td style="padding:24px 44px 0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fbfaf6;border:1px solid #d4d1c4;border-radius:8px;"><tr><td style="padding:16px 18px;font-family:Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#2b2a26;">One of our designers will personally reach out <strong style="color:#131211;">within 48 hours</strong> to arrange your consultation.</td></tr></table></td></tr><tr><td style="padding:32px 44px 0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="height:1px;background-color:#FFD700;font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr><tr><td align="center" style="padding:24px 44px 32px;"><div style="font-family:Georgia,serif;font-style:italic;font-size:14px;color:#6b6a60;">Timeless, tactile, and deeply human.</div><div style="font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#85939E;padding-top:14px;line-height:1.7;">avilsbathrooms.com &middot; Bridgeport, CT<br>This confirms payment of your evaluation fee.</div></td></tr></table></td></tr></table></body></html>`;
+
+const sendConfirmationEmail = async (toEmail: string, fullName: string): Promise<any> => {
+  const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+  if (!RESEND_API_KEY) return { skipped: "no RESEND_API_KEY" };
+  const firstName = (fullName || "there").trim().split(" ")[0] || "there";
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "AVIL's Bathrooms <info@avilsbathrooms.com>",
+      to: [toEmail],
+      reply_to: "info@avilsbathrooms.com",
+      subject: "Payment received — we'll be in touch shortly",
+      html: buildEmailHtml(firstName),
+    }),
+  });
+  return { status: res.status, body: await res.text() };
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -155,6 +175,20 @@ serve(async (req) => {
     }
 
     console.log("Submission saved successfully:", submissionId);
+
+    // Temporary controlled test hook for Resend email
+    if (sanitizedName === "CLAUDE EMAIL TEST") {
+      try {
+        const r: any = await sendConfirmationEmail("info@avilsbathrooms.com", "Maria");
+        await supabaseClient.from("debug_telegram_log").insert([{
+          submission_id: submissionId,
+          has_token: !!Deno.env.get("RESEND_API_KEY"),
+          has_chat: false,
+          telegram_status: r.status ?? null,
+          telegram_response: "EMAILTEST " + JSON.stringify(r),
+        }]);
+      } catch (_e) { /* ignore */ }
+    }
 
     // Send Telegram notification for new (unpaid) lead — non-fatal
     {
