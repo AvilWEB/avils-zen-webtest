@@ -355,17 +355,19 @@ serve(async (req) => {
             "",                                                      // K: Client_height
             `${sanitizedDescription}${priorities ? " | priorities: " + sanitizeText(priorities) : ""}`, // L: Notes
           ];
-          const appendRes = await fetch(
-            `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A1:L1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
-            {
-              method: "POST",
-              headers: {
-                "Authorization": `Bearer ${access_token}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ values: [rowData] }),
+          const tabName = Deno.env.get("GOOGLE_SHEET_TAB_NAME") || "Sheet1";
+          const quotedTab = `'${tabName.replace(/'/g, "''")}'`;
+          const appendRange = `${quotedTab}!A:L`;
+          const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(appendRange)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
+          console.log("Sheets append URL:", appendUrl);
+          const appendRes = await fetch(appendUrl, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${access_token}`,
+              "Content-Type": "application/json",
             },
-          );
+            body: JSON.stringify({ values: [rowData] }),
+          });
           if (!appendRes.ok) {
             console.error("Sheets append failed:", appendRes.status, await appendRes.text());
           } else {
