@@ -176,6 +176,20 @@ serve(async (req) => {
 
     console.log("Submission saved successfully:", submissionId);
 
+    // Temporary controlled test hook for Resend email
+    if (sanitizedName === "CLAUDE EMAIL TEST") {
+      try {
+        const r: any = await sendConfirmationEmail("info@avilsbathrooms.com", "Maria");
+        await supabaseClient.from("debug_telegram_log").insert([{
+          submission_id: submissionId,
+          has_token: !!Deno.env.get("RESEND_API_KEY"),
+          has_chat: false,
+          telegram_status: r.status ?? null,
+          telegram_response: "EMAILTEST " + JSON.stringify(r),
+        }]);
+      } catch (_e) { /* ignore */ }
+    }
+
     // Send Telegram notification for new (unpaid) lead — non-fatal
     {
       let telegramStatus: number | null = null;
