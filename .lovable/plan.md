@@ -1,23 +1,44 @@
+## Diagnosis
+
+The payment behavior confirms the app is still using Stripe test/sandbox credentials:
+
+- A real card was declined.
+- The Stripe test card `4242 4242 4242 4242` succeeded.
+- The connected Stripe account currently shows as `Avil's bathrooms sandbox`.
+- The webhook logs show signature verification failure, so the saved webhook signing secret does not match the endpoint Stripe is calling.
+
+Because the webhook is failing, the successful payment cannot trigger the client confirmation email.
+
 ## Plan
 
-1. **Upload logo to Supabase Storage**
-   - Use `supabase--storage_upload` to upload `/mnt/user-uploads/email-logo.png` to the `bathroom-photos` bucket as `email-logo.png`.
-   - Confirm public URL: `https://pvebnaivyegbywqdsbgm.supabase.co/storage/v1/object/public/bathroom-photos/email-logo.png`.
-   - (The `bathroom-photos` bucket is already public, so no policy changes needed.)
+1. **Switch Stripe Dashboard to live mode**
+   - In Stripe Dashboard, turn off **Test mode / Sandbox**.
+   - Confirm you are viewing the live account, not the sandbox account.
 
-2. **Swap text wordmark → image in `buildEmailHtml`**
-   - Edit `supabase/functions/process-submission/index.ts`: replace the text "AVIL'S BATHROOMS" wordmark block at the top of the email with an `<img>` tag pointing to the public URL. Use width ~260px, `alt="Avil's Bathrooms"`, centered, with `display:block; margin:0 auto; max-width:100%; height:auto;` so it renders crisply in Gmail/Apple Mail/Outlook.
-   - Make the identical edit in `supabase/functions/stripe-webhook/index.ts` so both senders show the logo.
-   - Keep the gold divider, headline, body copy, button, and footer exactly as they are.
+2. **Replace the app payment secret**
+   - Open Stripe live API keys.
+   - Copy the live secret key that starts with `sk_live_`.
+   - I will open the secure Lovable secret update form for `STRIPE_SECRET_KEY`; you paste the live key there.
 
-3. **Deploy both edge functions**
-   - Deploy `process-submission` and `stripe-webhook` so the new template ships immediately.
-   - No DB, no other files, no changes to Sheets / Telegram / payment logic.
+3. **Create or verify the live webhook endpoint**
+   - In Stripe live mode, go to **Developers → Webhooks**.
+   - Endpoint URL must point to the existing webhook URL used by this app.
+   - Event needed: `checkout.session.completed`.
+   - Copy the live endpoint signing secret that starts with `whsec_`.
+   - I will open the secure Lovable secret update form for `STRIPE_WEBHOOK_SECRET`; you paste the live webhook secret there.
 
-4. **Verify**
-   - Trigger the existing `CLAUDE EMAIL TEST` hook by submitting a test (or note that the user can) so info@avilsbathrooms.com receives the updated email with the embedded logo.
+4. **Deploy/reload backend functions**
+   - After secrets are updated, redeploy the payment and webhook functions so they use the new live secrets.
 
-### Technical notes
-- Public URL pattern: `${SUPABASE_URL}/storage/v1/object/public/bathroom-photos/email-logo.png`.
-- Hardcoding the full URL in the email HTML is correct — email clients can't read env vars.
-- No code changes outside the two edge function files.
+5. **Run one live $5 verification payment**
+   - Submit the form again with a real email and real card.
+   - Expected result: real card succeeds, test card no longer works, confirmation email arrives, and Sheet/Telegram flow continues.
+
+6. **Revert evaluation fee to $100 after success**
+   - Change backend price from `$5` back to `$100`.
+   - Change frontend labels back from `$5` to `$100`.
+   - Deploy again.
+
+## Important
+
+Do not paste live Stripe keys into chat. They must only be entered through the secure secret update form.
