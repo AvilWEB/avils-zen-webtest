@@ -64,7 +64,7 @@ serve(async (req) => {
               name: "Avil's Bathroom Evaluation",
               description: "Professional bathroom renovation assessment",
             },
-            unit_amount: 10000, // $100.00
+            unit_amount: 500, // TEST MODE: $5.00 (revert to 10000 after testing)
           },
           quantity: 1,
         },
