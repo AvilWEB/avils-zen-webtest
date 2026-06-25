@@ -98,7 +98,7 @@ const Gallery = () => {
 
         {/* Video Lightbox */}
         {selectedVideo && <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setSelectedVideo(null)}>
-            <button className="absolute top-4 right-4 text-white hover:text-primary transition-colors z-10" onClick={() => setSelectedVideo(null)}>
+            <button aria-label="Close video" className="absolute top-4 right-4 text-white hover:text-primary transition-colors z-10" onClick={() => setSelectedVideo(null)}>
               <X className="w-8 h-8" />
             </button>
             <video src={selectedVideo} controls autoPlay className="max-h-[90vh] max-w-[90vw] rounded-2xl" onClick={e => e.stopPropagation()} />

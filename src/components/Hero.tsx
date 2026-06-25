@@ -43,7 +43,7 @@ const Hero = ({
       </div>
 
       {/* Sound Toggle Button */}
-      <button onClick={toggleMute} className="absolute bottom-8 right-8 z-20 p-3 rounded-full bg-foreground/90 backdrop-blur-sm hover:bg-foreground transition-all shadow-elegant" aria-label={isMuted ? "Ieslēgt skaņu" : "Izslēgt skaņu"}>
+      <button onClick={toggleMute} className="absolute bottom-8 right-8 z-20 p-3 rounded-full bg-foreground/90 backdrop-blur-sm hover:bg-foreground transition-all shadow-elegant" aria-label={isMuted ? "Turn on sound" : "Turn off sound"}>
         {isMuted ? <VolumeX className="w-6 h-6 text-background" /> : <Volume2 className="w-6 h-6 text-background" />}
       </button>
 
