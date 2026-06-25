@@ -348,6 +348,24 @@ serve(async (req) => {
             console.error("Sheets token error:", sheetResponse);
           } else {
             const { access_token } = await tokRes.json();
+
+            // Auto-detect first tab name
+            let tab = "Sheet1";
+            try {
+              const metaRes = await fetch(
+                `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?fields=sheets.properties.title`,
+                { headers: { "Authorization": `Bearer ${access_token}` } },
+              );
+              if (metaRes.ok) {
+                const metaJson = await metaRes.json();
+                tab = metaJson.sheets?.[0]?.properties?.title || "Sheet1";
+              } else {
+                console.error("Sheets meta lookup failed:", metaRes.status, await metaRes.text());
+              }
+            } catch (metaErr) {
+              console.error("Sheets meta lookup error:", metaErr);
+            }
+
             const createdAt = new Date().toLocaleString("en-US", {
               timeZone: "America/New_York",
               year: "numeric", month: "2-digit", day: "2-digit",
@@ -356,11 +374,11 @@ serve(async (req) => {
             const rowData = [
               sanitizedName,                                           // A: Name
               phone || "",                                             // B: Phone
-              email,                                                   // C: Email
+              email,                                                   // C: Customer_email
               `${sanitizedAddress}, ${sanitizedCity}, ${zip}`,         // D: Address
               submissionId,                                            // E: Id
               "",                                                      // F: Amount (blank until paid)
-              "",                                                      // G: Stripe session id (blank until paid)
+              "",                                                      // G: Stripe_session_id (blank until paid)
               "pending_payment",                                       // H: Status
               createdAt,                                               // I: Created_at
               photoUrls.join(", "),                                    // J: Photos
@@ -368,8 +386,45 @@ serve(async (req) => {
               sanitizedDescription,                                    // L: What would you like to do
             ];
 
+            // Ensure header row (idempotent)
+            try {
+              const headerRange = encodeURIComponent(`'${tab}'!A1:L1`);
+              const headerGetRes = await fetch(
+                `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${headerRange}`,
+                { headers: { "Authorization": `Bearer ${access_token}` } },
+              );
+              let needsHeader = true;
+              if (headerGetRes.ok) {
+                const headerJson = await headerGetRes.json();
+                const row0: string[] = headerJson.values?.[0] || [];
+                if (row0.length >= 12 && (row0[11] || "").trim() !== "") {
+                  needsHeader = false;
+                }
+              }
+              if (needsHeader) {
+                const headers = ["Name","Phone","Customer_email","Address","Id","Amount","Stripe_session_id","Status","Created_at","Photos","What matters most","What would you like to do"];
+                const headerPutRes = await fetch(
+                  `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${headerRange}?valueInputOption=RAW`,
+                  {
+                    method: "PUT",
+                    headers: {
+                      "Authorization": `Bearer ${access_token}`,
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ values: [headers] }),
+                  },
+                );
+                if (!headerPutRes.ok) {
+                  console.error("Sheets header write failed:", headerPutRes.status, await headerPutRes.text());
+                }
+              }
+            } catch (hErr) {
+              console.error("Sheets header ensure error:", hErr);
+            }
+
             // Idempotency: look up submissionId in column E
-            const lookupUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!E:E`;
+            const lookupRange = encodeURIComponent(`'${tab}'!E:E`);
+            const lookupUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${lookupRange}`;
             const lookupRes = await fetch(lookupUrl, {
               headers: { "Authorization": `Bearer ${access_token}` },
             });
@@ -388,7 +443,8 @@ serve(async (req) => {
             }
 
             if (existingRow !== null) {
-              const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A${existingRow}:L${existingRow}?valueInputOption=RAW`;
+              const updateRange = encodeURIComponent(`'${tab}'!A${existingRow}:L${existingRow}`);
+              const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${updateRange}?valueInputOption=RAW`;
               const updateRes = await fetch(updateUrl, {
                 method: "PUT",
                 headers: {
@@ -406,7 +462,8 @@ serve(async (req) => {
                 console.log("Sheets row updated for", submissionId);
               }
             } else {
-              const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:L:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
+              const appendRange = encodeURIComponent(`'${tab}'!A:L`);
+              const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${appendRange}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
               const appendRes = await fetch(appendUrl, {
                 method: "POST",
                 headers: {
@@ -425,6 +482,7 @@ serve(async (req) => {
               }
             }
           }
+
         }
       } catch (sheetsErr) {
         if (!sheetResponse) {
