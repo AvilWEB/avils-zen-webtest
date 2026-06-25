@@ -1,16 +1,46 @@
-import { useEffect } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, Mail, Calendar } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const submissionId = searchParams.get("submission");
+  const sessionId = searchParams.get("session_id");
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
-    // TODO: Update submission status to "paid" in the database
-    console.log("Payment successful for submission:", submissionId);
-  }, [submissionId]);
+    let cancelled = false;
+    const verify = async () => {
+      if (!submissionId || !sessionId) {
+        navigate("/", { replace: true });
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("verify-payment", {
+        body: { sessionId, submissionId },
+      });
+      if (cancelled) return;
+      if (error || !data?.valid) {
+        navigate("/", { replace: true });
+        return;
+      }
+      setVerified(true);
+    };
+    verify();
+    return () => {
+      cancelled = true;
+    };
+  }, [submissionId, sessionId, navigate]);
+
+  if (!verified) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <p className="text-muted-foreground">Verifying payment…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">

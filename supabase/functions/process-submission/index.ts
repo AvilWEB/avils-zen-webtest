@@ -33,24 +33,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // TEMP DIAGNOSTIC: record which env var names this function can actually see
-  try {
-    const diagClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-    const envKeys = Object.keys(Deno.env.toObject()).sort().join(", ");
-    await diagClient.from("debug_telegram_log").insert([{
-      submission_id: "ENV_CHECK",
-      has_token: !!Deno.env.get("TELEGRAM_BOT_TOKEN"),
-      has_chat: !!Deno.env.get("TELEGRAM_CHAT_ID"),
-      telegram_status: null,
-      telegram_response: envKeys,
-    }]);
-  } catch (_e) {
-    // ignore
-  }
-
   try {
     console.log("Processing submission");
 
@@ -90,11 +72,25 @@ serve(async (req) => {
     const sanitizedAddress = sanitizeText(address);
     const sanitizedCity = sanitizeText(city);
 
-    // Create Supabase client
+    // Create Supabase client (service role)
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
+
+    // Basic abuse protection: max 3 submissions per email per hour
+    const oneHourAgo = new Date(Date.now() - 3600_000).toISOString();
+    const { data: recent, error: recentErr } = await supabaseClient
+      .from("submissions")
+      .select("id")
+      .eq("email", email)
+      .gte("created_at", oneHourAgo);
+    if (!recentErr && recent && recent.length >= 3) {
+      return new Response(
+        JSON.stringify({ error: "Too many submissions. Please try again later." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Generate unique submission ID
     const timestamp = new Date().toISOString().split("T")[0].replace(/-/g, "");
