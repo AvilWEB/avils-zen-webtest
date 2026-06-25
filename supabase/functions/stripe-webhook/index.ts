@@ -516,7 +516,36 @@ serve(async (req) => {
         logStep("Telegram notification error (non-fatal)", { error: tgErr instanceof Error ? tgErr.message : String(tgErr) });
       }
 
+      // Send branded confirmation email via Resend — non-fatal
+      try {
+        if (data && data.length > 0) {
+          const submission = data[0];
+          const result: any = await sendConfirmationEmail(submission.email, submission.name);
+          try {
+            await supabaseClient.from("debug_telegram_log").insert([{
+              submission_id: submission.submission_id,
+              has_token: !!Deno.env.get("RESEND_API_KEY"),
+              has_chat: false,
+              telegram_status: result.status ?? null,
+              telegram_response: "EMAIL " + (result.status === 200 ? "ok" : JSON.stringify(result)),
+            }]);
+          } catch (_e) { /* ignore */ }
+        }
+      } catch (emailErr) {
+        logStep("Resend email error (non-fatal)", { error: emailErr instanceof Error ? emailErr.message : String(emailErr) });
+        try {
+          await supabaseClient.from("debug_telegram_log").insert([{
+            submission_id: submissionId,
+            has_token: !!Deno.env.get("RESEND_API_KEY"),
+            has_chat: false,
+            telegram_status: null,
+            telegram_response: "EMAIL err " + (emailErr instanceof Error ? emailErr.message : String(emailErr)),
+          }]);
+        } catch (_e) { /* ignore */ }
+      }
+
       // Sync to Google Sheets
+
 
       try {
         if (data && data.length > 0) {
