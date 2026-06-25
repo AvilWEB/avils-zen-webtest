@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
 import { Check, Mail, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +45,15 @@ const PaymentSuccess = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <Helmet>
+        <title>Payment Confirmed | Avil&#39;s Bathrooms</title>
+        <meta name="description" content="Your bathroom evaluation payment has been received. Avil will personally review your submission and reach out within 48 business hours." />
+        <meta name="robots" content="noindex, nofollow" />
+        <link rel="canonical" href="https://avilsbathrooms.com/payment-success" />
+        <meta property="og:title" content="Payment Confirmed | Avil's Bathrooms" />
+        <meta property="og:description" content="Your bathroom evaluation payment has been received." />
+        <meta property="og:url" content="https://avilsbathrooms.com/payment-success" />
+      </Helmet>
       <div className="max-w-2xl w-full">
         <div className="bg-card rounded-3xl p-8 md:p-12 shadow-elegant text-center">
           {/* Success Icon */}

@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet";
 import {
   Accordion,
   AccordionContent,
@@ -41,6 +42,19 @@ const FAQ = () => {
 
   return (
     <section className="py-20 md:py-32 px-4 bg-background">
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((f) => ({
+              "@type": "Question",
+              name: f.question,
+              acceptedAnswer: { "@type": "Answer", text: f.answer },
+            })),
+          })}
+        </script>
+      </Helmet>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">

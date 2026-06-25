@@ -60,7 +60,7 @@ const brandJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "AVIL's Bathrooms",
-  "description": "Premium bathroom remodeling services in Houston, Texas. Crafting luxury bathroom transformations with quality craftsmanship.",
+  "description": "Premium bathroom remodeling services in Bridgeport, CT and Fairfield County. Crafting luxury bathroom transformations with quality craftsmanship.",
   "url": "https://avilsbathrooms.com",
   "logo": "https://avilsbathrooms.com/logos/logo-gold.png",
   "brand": {
@@ -137,9 +137,13 @@ const BrandBook = () => {
   };
   return <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Brand Book | AVIL's Bathrooms - Complete Brand Guidelines</title>
-        <meta name="description" content="Complete brand guidelines for AVIL's Bathrooms. Includes logo usage, color palette, typography, design tokens, templates, and messaging guidelines for consistent brand implementation." />
+        <title>Brand Book | AVIL&#39;s Bathrooms</title>
+        <meta name="description" content="Brand guidelines for AVIL's Bathrooms: logo, colors, typography, tokens, templates, and messaging." />
         <meta name="keywords" content="AVIL's Bathrooms, brand guidelines, brand book, design system, logo, colors, typography, templates" />
+        <link rel="canonical" href="https://avilsbathrooms.com/brand-book" />
+        <meta property="og:title" content="Brand Book | AVIL's Bathrooms" />
+        <meta property="og:description" content="Brand guidelines for AVIL's Bathrooms: logo, colors, typography, tokens, templates, and messaging." />
+        <meta property="og:url" content="https://avilsbathrooms.com/brand-book" />
         <script type="application/ld+json">
           {JSON.stringify(brandJsonLd)}
         </script>
