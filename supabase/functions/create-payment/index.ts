@@ -70,7 +70,7 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/payment-success?submission=${submissionId}`,
+      success_url: `${req.headers.get("origin")}/payment-success?submission=${submissionId}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/?payment=cancelled`,
       metadata: {
         submission_id: submissionId,

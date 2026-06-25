@@ -33,24 +33,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // TEMP DIAGNOSTIC: record which env var names this function can actually see
-  try {
-    const diagClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-    const envKeys = Object.keys(Deno.env.toObject()).sort().join(", ");
-    await diagClient.from("debug_telegram_log").insert([{
-      submission_id: "ENV_CHECK",
-      has_token: !!Deno.env.get("TELEGRAM_BOT_TOKEN"),
-      has_chat: !!Deno.env.get("TELEGRAM_CHAT_ID"),
-      telegram_status: null,
-      telegram_response: envKeys,
-    }]);
-  } catch (_e) {
-    // ignore
-  }
-
   try {
     console.log("Processing submission");
 
