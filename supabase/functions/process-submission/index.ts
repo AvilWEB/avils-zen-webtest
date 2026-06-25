@@ -358,7 +358,7 @@ serve(async (req) => {
           const tabName = Deno.env.get("GOOGLE_SHEET_TAB_NAME") || "Sheet1";
           const quotedTab = `'${tabName.replace(/'/g, "''")}'`;
           const appendRange = `${quotedTab}!A:L`;
-          const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(appendRange)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
+          const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${appendRange}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
           console.log("Sheets append URL:", appendUrl);
           const appendRes = await fetch(appendUrl, {
             method: "POST",
