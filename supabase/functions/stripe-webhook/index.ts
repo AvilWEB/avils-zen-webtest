@@ -220,13 +220,14 @@ async function logErrorToSheet(
 async function findExistingRow(
   accessToken: string,
   sheetId: string,
+  tab: string,
   stripeSessionId: string,
   submissionId?: string
 ): Promise<number | null> {
   try {
-    // First: search column G (Stripe_session_id)
+    const gRange = encodeURIComponent(`'${tab}'!G:G`);
     const gRes = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!G:G`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${gRange}`,
       { method: "GET", headers: { Authorization: `Bearer ${accessToken}` } }
     );
     if (gRes.ok) {
@@ -235,12 +236,14 @@ async function findExistingRow(
       for (let i = 1; i < values.length; i++) {
         if (values[i][0] === stripeSessionId) return i + 1;
       }
+    } else {
+      logStep("findExistingRow G lookup failed", { status: gRes.status, body: await gRes.text() });
     }
 
-    // Fallback: search column E (submission_id) for an existing unpaid row
     if (submissionId) {
+      const eRange = encodeURIComponent(`'${tab}'!E:E`);
       const eRes = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!E:E`,
+        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${eRange}`,
         { method: "GET", headers: { Authorization: `Bearer ${accessToken}` } }
       );
       if (eRes.ok) {
@@ -249,6 +252,8 @@ async function findExistingRow(
         for (let i = 1; i < values.length; i++) {
           if (values[i][0] === submissionId) return i + 1;
         }
+      } else {
+        logStep("findExistingRow E lookup failed", { status: eRes.status, body: await eRes.text() });
       }
     }
 
