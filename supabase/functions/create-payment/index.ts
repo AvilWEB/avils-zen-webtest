@@ -41,6 +41,30 @@ serve(async (req) => {
 
     const { email, submissionId } = validationResult.data;
 
+    // Validate Origin against an allowlist to prevent open-redirect abuse.
+    // The Origin header is attacker-controlled, so we never trust it directly.
+    const DEFAULT_ORIGIN = "https://avilsbathrooms.com";
+    const ALLOWED_EXACT = new Set<string>([
+      "https://avilsbathrooms.com",
+      "https://www.avilsbathrooms.com",
+      "https://avils-zen-webtest.lovable.app",
+    ]);
+    const requestOrigin = req.headers.get("origin") || "";
+    let safeOrigin = DEFAULT_ORIGIN;
+    if (ALLOWED_EXACT.has(requestOrigin)) {
+      safeOrigin = requestOrigin;
+    } else {
+      try {
+        const u = new URL(requestOrigin);
+        // Allow Lovable preview subdomains over https only
+        if (u.protocol === "https:" && u.hostname.endsWith(".lovable.app")) {
+          safeOrigin = `${u.protocol}//${u.host}`;
+        }
+      } catch {
+        // requestOrigin not a valid URL — fall back to DEFAULT_ORIGIN
+      }
+    }
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
@@ -70,8 +94,8 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/payment-success?submission=${submissionId}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/?payment=cancelled`,
+      success_url: `${safeOrigin}/payment-success?submission=${submissionId}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${safeOrigin}/?payment=cancelled`,
       metadata: {
         submission_id: submissionId,
       },

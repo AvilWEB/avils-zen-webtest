@@ -282,10 +282,11 @@ async function sendNotification(webhookUrl: string, data: any) {
 }
 
 serve(async (req) => {
-  logStep("Incoming request", { 
-    method: req.method, 
+  // Do NOT log request headers — they include stripe-signature, authorization,
+  // and apikey, which are sensitive credentials/tokens.
+  logStep("Incoming request", {
+    method: req.method,
     url: req.url,
-    headers: Object.fromEntries(req.headers.entries())
   });
   
   if (req.method === "OPTIONS") {
