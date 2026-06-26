@@ -641,14 +641,34 @@ serve(async (req) => {
             const { access_token } = await tokenResponse.json();
             logStep("✅ OAuth access token obtained successfully");
 
+            // Auto-detect first tab name (process-submission writes to the first tab)
+            let tab = "Sheet1";
+            try {
+              const metaRes = await fetch(
+                `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?fields=sheets.properties.title`,
+                { headers: { Authorization: `Bearer ${access_token}` } }
+              );
+              if (metaRes.ok) {
+                const metaJson = await metaRes.json();
+                tab = metaJson.sheets?.[0]?.properties?.title || "Sheet1";
+                logStep("Detected sheet tab", { tab });
+              } else {
+                logStep("Tab metadata lookup failed, falling back to Sheet1", { status: metaRes.status });
+              }
+            } catch (metaErr) {
+              logStep("Tab metadata lookup error, falling back to Sheet1", {
+                error: metaErr instanceof Error ? metaErr.message : String(metaErr),
+              });
+            }
+
             // Check for existing row (idempotency)
-            logStep("🔍 Checking for existing row by Stripe session or submission ID", { sessionId: session.id, submissionId });
-            const existingRow = await findExistingRow(access_token, sheetId, session.id, submissionId);
-            
+            logStep("🔍 Checking for existing row by Stripe session or submission ID", { sessionId: session.id, submissionId, tab });
+            const existingRow = await findExistingRow(access_token, sheetId, tab, session.id, submissionId);
+
             if (existingRow) {
-              logStep("✅ Row already exists, updating instead of creating duplicate", { 
+              logStep("✅ Row already exists, updating instead of creating duplicate", {
                 rowNumber: existingRow,
-                sessionId: session.id 
+                sessionId: session.id
               });
             }
 
@@ -663,9 +683,9 @@ serve(async (req) => {
               logStep("📸 Using Supabase storage photo URLs directly", { photoLinks });
             }
 
-            
+
             // Prepare row data with proper timezone
-            const createdAt = new Date(submission.created_at).toLocaleString('en-US', { 
+            const createdAt = new Date(submission.created_at).toLocaleString('en-US', {
               timeZone: 'America/New_York',
               year: 'numeric',
               month: '2-digit',
@@ -675,16 +695,21 @@ serve(async (req) => {
               second: '2-digit'
             });
 
+            // Format amount from Stripe session (cents -> dollars)
+            const amountFormatted = session.amount_total != null
+              ? `$${(session.amount_total / 100).toFixed(2)}`
+              : "";
+
             // Extract name from email (before @)
             const nameFromEmail = submission.email ? submission.email.split('@')[0].replace(/[._]/g, ' ').split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ') : '';
-            
+
             const rowData = [
               nameFromEmail || submission.email || "", // A: Name (extracted from email)
               submission.phone || "", // B: Phone
               submission.email || "", // C: Customer_email
               `${submission.address}, ${submission.city}, ${submission.zip}`, // D: Address
               submission.submission_id || "", // E: Id
-              "$100.00", // F: Amount
+              amountFormatted, // F: Amount
               session.id || "", // G: Stripe_session_id
               submission.status || "paid", // H: Status
               createdAt, // I: Created_at
@@ -692,49 +717,39 @@ serve(async (req) => {
               submission.height ? `${submission.height} ${submission.height_unit || ''}` : "", // K: Client_height
               submission.description || "", // L: Notes
             ];
-            
+
             logStep("Row data prepared for Google Sheets", {
               rowData,
               rowLength: rowData.length,
               isUpdate: !!existingRow
             });
-            
+
             let sheetsResponse;
             if (existingRow) {
-              // Update existing row
-              const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A${existingRow}:L${existingRow}?valueInputOption=RAW`;
-              logStep("Updating existing row in Google Sheets", { 
-                url: updateUrl,
-                rowNumber: existingRow 
-              });
-              
+              const updateRange = encodeURIComponent(`'${tab}'!A${existingRow}:L${existingRow}`);
+              const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${updateRange}?valueInputOption=RAW`;
+              logStep("Updating existing row in Google Sheets", { url: updateUrl, rowNumber: existingRow });
+
               sheetsResponse = await fetch(updateUrl, {
                 method: "PUT",
                 headers: {
                   "Authorization": `Bearer ${access_token}`,
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                  values: [rowData],
-                }),
+                body: JSON.stringify({ values: [rowData] }),
               });
             } else {
-              // Append new row
-              const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:L:append?valueInputOption=RAW`;
-              logStep("Appending new row to Google Sheets", { 
-                url: appendUrl,
-                submissionId 
-              });
-              
+              const appendRange = encodeURIComponent(`'${tab}'!A:L`);
+              const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${appendRange}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
+              logStep("Appending new row to Google Sheets", { url: appendUrl, submissionId });
+
               sheetsResponse = await fetch(appendUrl, {
                 method: "POST",
                 headers: {
                   "Authorization": `Bearer ${access_token}`,
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                  values: [rowData],
-                }),
+                body: JSON.stringify({ values: [rowData] }),
               });
             }
             
