@@ -279,8 +279,19 @@ const RequestEstimateModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl h-[90vh] max-h-[90vh] flex flex-col p-0 gap-0">
-        <div className="flex-1 overflow-y-auto px-6 pt-6 pb-2">
+      <DialogContent className="max-w-2xl h-[90vh] max-h-[90vh] h-[90dvh] max-h-[90dvh] flex flex-col p-0 gap-0">
+        <div
+          className="flex-1 overflow-y-auto px-6 pt-6 pb-2 [scroll-padding-bottom:6rem]"
+          onFocus={(e) => {
+            const t = e.target as HTMLElement;
+            if (t.matches("input, textarea, select")) {
+              // Wait for the mobile keyboard to open, then bring the field into view
+              setTimeout(() => {
+                t.scrollIntoView({ block: "center", behavior: "smooth" });
+              }, 300);
+            }
+          }}
+        >
           <div className="space-y-6">
           {/* Header */}
           <div>
