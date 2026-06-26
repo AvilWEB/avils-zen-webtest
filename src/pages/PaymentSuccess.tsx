@@ -76,7 +76,7 @@ const PaymentSuccess = () => {
               <p className="text-sm text-muted-foreground mb-1">
                 Reference Number
               </p>
-              <p className="text-lg font-mono font-semibold text-foreground">
+              <p className="text-lg font-mono font-semibold text-foreground break-all">
                 {submissionId}
               </p>
             </div>
